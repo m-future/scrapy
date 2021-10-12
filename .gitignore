@@ -1,4 +1,3 @@
 **/data/
-/*.txt
-**/*.log
+*.log
 /*.html
