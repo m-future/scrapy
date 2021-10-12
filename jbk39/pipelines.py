@@ -1,7 +1,7 @@
 '''
 Author: mfuture@qq.com
 Date: 2021-04-22 14:28:08
-LastEditTime: 2021-10-12 16:46:38
+LastEditTime: 2021-10-12 17:20:35
 LastEditors: mfuture@qq.com
 Description: 
 FilePath: /jbk39/jbk39/pipelines.py
@@ -20,7 +20,7 @@ from .lib.db_service import database as db
 class Jbk39Pipeline(object):
 
 	def open_spider(self,spider):
-		self.f = open('job2.json','w',encoding='utf-8')
+		self.f = open('example.json','w',encoding='utf-8')
 
 	def process_item(self, item, spider):
 		# self.f.write(json.dumps(dict(item),ensure_ascii=False))
