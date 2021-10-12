@@ -1,3 +1,13 @@
+'''
+Author: mfuture@qq.com
+Date: 2021-04-22 14:35:56
+LastEditTime: 2021-10-12 17:14:39
+LastEditors: mfuture@qq.com
+Description: 
+FilePath: /jbk39/jbk39/settings.py
+'''
+
+import datetime
 # Scrapy settings for jbk39 project
 #
 # For simplicity, this file contains only settings considered important or
@@ -20,6 +30,14 @@ ITEM_PIPELINES = {
 
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = False
+
+# 日志记录
+LOG_LEVEL = 'INFO'
+to_day = datetime.datetime.now()
+# 注意此处相对路径的写法，必须带上项目名称目录
+log_file_path = './jbk39/log/scrapy_{}_{}_{}.log'.format(to_day.year, to_day.month, to_day.day)
+LOG_FILE = log_file_path
+ 
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 #CONCURRENT_REQUESTS = 32
@@ -46,15 +64,15 @@ ROBOTSTXT_OBEY = False
 
 # Enable or disable spider middlewares
 # See https://docs.scrapy.org/en/latest/topics/spider-middleware.html
-#SPIDER_MIDDLEWARES = {
-#    'jbk39.middlewares.Jbk39SpiderMiddleware': 543,
-#}
+SPIDER_MIDDLEWARES = {
+   'jbk39.middlewares.Jbk39SpiderMiddleware': 543, #执行顺序
+}
 
 # Enable or disable downloader middlewares
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
-#DOWNLOADER_MIDDLEWARES = {
-#    'jbk39.middlewares.Jbk39DownloaderMiddleware': 543,
-#}
+DOWNLOADER_MIDDLEWARES = {
+   'jbk39.middlewares.Jbk39DownloaderMiddleware': 543,
+}
 
 # Enable or disable extensions
 # See https://docs.scrapy.org/en/latest/topics/extensions.html

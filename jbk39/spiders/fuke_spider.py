@@ -1,58 +1,60 @@
 import scrapy
 import time  # 引入time模块
 
-from jbk39.items import Jbk39Item 
+from jbk39.items import Jbk39Item
 
-class jbk39(scrapy.Spider): #需要继承scrapy.Spider类
 
-	name = "fuke" # 定义蜘蛛名
+class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
 
-	custom_settings = {
-		"DEFAULT_REQUEST_HEADERS": {
-		'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36',
-		}
-	}
+    name = "fuke"  # 定义蜘蛛名
 
-	def start_requests(self):
-	# 定义爬取的链接
-		base_url = 'https://jbk.39.net/bw/fuke_t1/'
-		yield scrapy.Request(url=base_url, callback=self.init_parse)
+    custom_settings = {
+        "DEFAULT_REQUEST_HEADERS": {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36',
+        }
+    }
 
-	def init_parse(self, response):
+    def start_requests(self):
+        # 定义爬取的链接
+        base_url = 'https://jbk.39.net/bw/fuke_t1/'
+        yield scrapy.Request(url=base_url, callback=self.init_parse)
 
-		print('goto init_parse')
-		urls = []
-		cur = response.xpath('//ul[@class="result_item_dots"]/li/span/a/text()')
-		dotlen = len(cur)
-		listdata = int(cur[dotlen - 2].extract()) #翻页数量
-		for i in range(listdata):
-		#for i in range(1):
-			ids = i + 1
-			url = 'https://jbk.39.net/bw/fuke_t1_p' + str(ids)
-			urls.append(url)
-		print(urls)
-		for url in urls:
-			yield scrapy.Request(url=url, callback=self.parse) 
+    def init_parse(self, response):
 
-	def parse(self, response):
+        print('goto init_parse')
+        urls = []
+        cur = response.xpath(
+            '//ul[@class="result_item_dots"]/li/span/a/text()')
+        dotlen = len(cur)
+        listdata = int(cur[dotlen - 2].extract())  # 翻页数量
+        for i in range(listdata):
+            # for i in range(1):
+            ids = i + 1
+            url = 'https://jbk.39.net/bw/fuke_t1_p' + str(ids)
+            urls.append(url)
+            
+        for url in urls:
+            yield scrapy.Request(url=url, callback=self.parse)
 
-		time.sleep(2) #延迟2秒执行
-		print('goto parse ')
+    def parse(self, response):
 
-		links_intro = []
-		links_treat = []
-		links_diagnosis = []
-		names = []
+        time.sleep(1)  # 延迟2秒执行
+        print('goto parse ')
 
-		for sel in response.xpath('//*[@class="result_item_top_l"]'):
-			name = sel.xpath('a/text()').extract()
-			link = sel.xpath('a/@href').extract()[0]
-			names.append(name)
-			links_intro.append(link + 'jbzs')
-			links_treat.append(link + 'yyzl')
-			links_diagnosis.append(link + 'jb')
+        links_intro = []
+        links_treat = []
+        links_diagnosis = []
+        names = []
 
-		'''
+        for sel in response.xpath('//*[@class="result_item_top_l"]'):
+            name = sel.xpath('a/text()').extract()
+            link = sel.xpath('a/@href').extract()[0]
+            names.append(name)
+            links_intro.append(link + 'jbzs')
+            links_treat.append(link + 'yyzl')
+            links_diagnosis.append(link + 'jb')
+
+        '''
 		tmp_links = []
 		tmp_links.append('https://jbk.39.net/zgnmb/jbzs/')
 		tmp_links.append('https://jbk.39.net/gh/jbzs/')
@@ -69,19 +71,16 @@ class jbk39(scrapy.Spider): #需要继承scrapy.Spider类
 			yield scrapy.Request(url=link, callback=self.intro_parse)
 
 		
-		print(links_intro) 
 		for link in links_intro:
 			yield scrapy.Request(url=link, callback=self.intro_parse)
 		
-		print(links_treat)
 		for link in links_treat:
 			yield scrapy.Request(url=link, callback=self.treat_parse)
 		
 		'''
-		print(links_diagnosis)
-		for link in links_diagnosis:
-			yield scrapy.Request(url=link, callback=self.diagnosis_parse)
-		'''
+        for link in links_diagnosis:
+            yield scrapy.Request(url=link, callback=self.diagnosis_parse)
+        '''
 		link = 'https://jbk.39.net/zgjl/jbzs'
 		yield scrapy.Request(url=link, callback=self.intro_parse)
 		link = 'https://jbk.39.net/mjxydy/yyzl'
@@ -90,103 +89,99 @@ class jbk39(scrapy.Spider): #需要继承scrapy.Spider类
 		link = 'https://jbk.39.net/mjxydy/jb'
 		yield scrapy.Request(url=link, callback=self.diagnosis_parse)
 		'''
-		
 
-	def intro_parse(self, response):
-		
-		item = Jbk39Item()
+    def intro_parse(self, response):
 
-		time.sleep(3) #延迟3秒执行
-		print('goto intro_parse ')
-		name = response.xpath('//div[@class="disease"]/h1/text()').extract()
-		intro = response.xpath('//p[@class="introduction"]/text()').extract()
-		txt = response.xpath('//span[@class="disease_basic_txt"]/text()').extract()
-		if (len(txt) > 1):
-			alias = txt[1]
-		else:
-			alias = ''
-		item['name'] = name[0]
-		item['intro'] = intro[0]
-		item['alias'] = alias
-		item['department'] = '妇科'
-		item['classify'] = 'intro'
-		yield item
+        item = Jbk39Item()
 
-	def treat_parse(self, response):
+        time.sleep(3)  # 延迟3秒执行
+        print('goto intro_parse ')
+        name = response.xpath('//div[@class="disease"]/h1/text()').extract()
+        intro = response.xpath('//p[@class="introduction"]/text()').extract()
+        txt = response.xpath(
+            '//span[@class="disease_basic_txt"]/text()').extract()
+        if (len(txt) > 1):
+            alias = txt[1]
+        else:
+            alias = ''
+        item['name'] = name[0]
+        item['intro'] = intro[0]
+        item['alias'] = alias
+        item['department'] = '妇科'
+        item['classify'] = 'intro'
+        yield item
 
-		time.sleep(3)#延迟3秒执行
-		print('goto treat_parse')
+    def treat_parse(self, response):
 
-		item = Jbk39Item()
+        time.sleep(3)  # 延迟3秒执行
+        print('goto treat_parse')
 
-		name = response.xpath('//div[@class="disease"]/h1/text()').extract()
+        item = Jbk39Item()
 
-		common_treat = []
-		chinese_med_treat = []
-		flag = 1 # 1、西医治疗； 2、中医治疗
-		text_lists = response.xpath('//p[@class="article_name"]/text() | //p[@class="article_content_text"]/text()').extract()
-		
-		for text in text_lists:
+        name = response.xpath('//div[@class="disease"]/h1/text()').extract()
 
-			mystr = str(text.replace(u'\u3000', u''))
-			print(mystr)
+        common_treat = []
+        chinese_med_treat = []
+        flag = 1  # 1、西医治疗； 2、中医治疗
+        text_lists = response.xpath(
+            '//p[@class="article_name"]/text() | //p[@class="article_content_text"]/text()').extract()
 
-			if mystr.find('中医治疗') >= 0:
-				flag = 2
+        for text in text_lists:
 
-			if mystr.find("西医治疗") < 0 and mystr.find("中医治疗") < 0:
+            mystr = str(text.replace(u'\u3000', u''))
 
-				if flag == 1:
-					common_treat.append(mystr)
-				else:
-					chinese_med_treat.append(mystr)
+            if mystr.find('中医治疗') >= 0:
+                flag = 2
 
-		item["common_treat"] = common_treat
-		item["chinese_med_treat"] = chinese_med_treat
-		item['department'] = '妇科'
-		item["name"] = name
-		item['classify'] = 'treat'
+            if mystr.find("西医治疗") < 0 and mystr.find("中医治疗") < 0:
 
-		yield item
+                if flag == 1:
+                    common_treat.append(mystr)
+                else:
+                    chinese_med_treat.append(mystr)
 
-	def diagnosis_parse(self, response):
+        item["common_treat"] = common_treat
+        item["chinese_med_treat"] = chinese_med_treat
+        item['department'] = '妇科'
+        item["name"] = name
+        item['classify'] = 'treat'
 
-		time.sleep(3)#延迟3秒执行
-		print('goto diagnosis_parse')
-		item = Jbk39Item()
-		name = response.xpath('//div[@class="disease"]/h1/text()').extract()
-		diagnosis = []
-		identify = []
+        yield item
 
-		#text_lists = response.xpath('//p[@class="article_name"]/text() | //p[@class="article_content_text"]/text()').extract()
-		text_lists_diagnosis = response.xpath('//div[@class="art-box"]/p/text() | //div[@class="art-box"]/p/*/text() ').extract()
-		text_lists_identify = response.xpath('//div[@class="article_paragraph"]/p/text() | //div[@class="article_paragraph"]/p/*/text() ').extract()
-		count1 = 0
-		count2 = 0
+    def diagnosis_parse(self, response):
 
-		for text in text_lists_diagnosis:
+        time.sleep(1)  # 延迟3秒执行
+        print('goto diagnosis_parse')
+        item = Jbk39Item()
+        name = response.xpath('//div[@class="disease"]/h1/text()').extract()
+        diagnosis = []
+        identify = []
 
-			mystr = str(text.replace(u'\u3000', u''))
-			count2 = count2 + 1
-			print(mystr)
-			diagnosis.append(mystr)
+        #text_lists = response.xpath('//p[@class="article_name"]/text() | //p[@class="article_content_text"]/text()').extract()
+        text_lists_diagnosis = response.xpath(
+            '//div[@class="art-box"]/p/text() | //div[@class="art-box"]/p/*/text() ').extract()
+        text_lists_identify = response.xpath(
+            '//div[@class="article_paragraph"]/p/text() | //div[@class="article_paragraph"]/p/*/text() ').extract()
+        count1 = 0
+        count2 = 0
 
-		for text in text_lists_identify:
+        for text in text_lists_diagnosis:
 
-			mystr = str(text.replace(u'\u3000', u''))
-			print(mystr)
-			count1 = count1 + 1
-			identify.append(mystr)
+            mystr = str(text.replace(u'\u3000', u''))
+            count2 = count2 + 1
 
-		print(count2)
-		print(count1)
-		
-		item["diagnosis"] = diagnosis
-		item["identify"] = identify
-		item["name"] = name
-		item['department'] = '妇科'
-		item['classify'] = 'diagnosis'
+            diagnosis.append(mystr)
 
-		yield item
+        for text in text_lists_identify:
 
+            mystr = str(text.replace(u'\u3000', u''))
+            count1 = count1 + 1
+            identify.append(mystr)
 
+        item["diagnosis"] = diagnosis
+        item["identify"] = identify
+        item["name"] = name
+        item['department'] = '妇科'
+        item['classify'] = 'diagnosis'
+
+        yield item
