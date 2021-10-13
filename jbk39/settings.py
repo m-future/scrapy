@@ -1,7 +1,7 @@
 '''
 Author: mfuture@qq.com
 Date: 2021-04-22 14:35:56
-LastEditTime: 2021-10-13 14:39:42
+LastEditTime: 2021-10-13 15:44:20
 LastEditors: mfuture@qq.com
 Description: 
 FilePath: /health39/jbk39/settings.py
@@ -35,8 +35,8 @@ ROBOTSTXT_OBEY = False
 LOG_LEVEL = 'INFO' # 由高到低等级分为：CRITICAL ERROR WARNING INFO DEBUG
 to_day = datetime.datetime.now()
 # 注意此处相对路径的写法，必须带上项目名称目录
-# log_file_path = './jbk39/log/scrapy_{}_{}_{}.log'.format(to_day.year, to_day.month, to_day.day)
-# LOG_FILE = log_file_path
+log_file_path = './jbk39/log/scrapy_{}_{}_{}.log'.format(to_day.year, to_day.month, to_day.day)
+LOG_FILE = log_file_path
  
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
