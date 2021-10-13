@@ -3,6 +3,7 @@ import time  # 引入time模块
 import logging
 
 from jbk39.items import Jbk39Item
+import json
 
 CRAWL_INTERVAL= 0.5 #睡眠时间，防止爬虫被墙
 
@@ -17,79 +18,90 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
         }
     }
 
+    # step1: 开始请求妇科疾病
     def start_requests(self):
         # 定义爬取的链接
         base_url = 'https://jbk.39.net/bw/fuke_t1/'  # 疾病
         yield scrapy.Request(url=base_url, callback=self.init_parse)
-
+    
+    # step2: 获取妇科疾病分页
     def init_parse(self, response):
 
         print('goto init_parse')
-        urls = []  # 全部疾病的分页连接
-        cur = response.xpath('//ul[@class="result_item_dots"]/li/span/a/text()')
-        dotlen = len(cur)
-        listdata = int(cur[dotlen - 2].extract())  # 翻页数量
-        for i in range(listdata):
-            url = 'https://jbk.39.net/bw/fuke_t1_p' + str(i+1)
-            urls.append(url)
 
-        for url in urls:
+        pages=response.xpath('//ul[@class="result_item_dots"]/li/span[last()-1]/a/text()')[0].extract()
+
+        for i in range(int(pages)):
+            url = 'https://jbk.39.net/bw/fuke_t1_p' + str(i+1)
+            # step2.2: 请求某一分页
             yield scrapy.Request(url=url, callback=self.parse)
 
+    # step3: 获取某一分页的所有疾病
     def parse(self, response):
 
-        time.sleep(CRAWL_INTERVAL)  # 延迟2秒执行
+        time.sleep(CRAWL_INTERVAL)  
         print('goto parse ')
 
         links_intro = []
         links_treat = []
         links_diagnosis = []
 
-        for sel in response.xpath('//*[@class="result_item_top_l"]'):
-            link = sel.xpath('a/@href').extract()[0]
+        # 获取子项目的 url
+        diseaseUrls=response.xpath('//*[@class="result_item_top_l"]')
+        for item in diseaseUrls:
+            link = item.xpath('a/@href').extract()[0] # 该病的url，比如 "https://jbk.39.net/jxzgnmy/"
             links_intro.append(link + 'jbzs') #简介
             links_treat.append(link + 'yyzl') #治疗
-            links_diagnosis.append(link + 'jb') #鉴别
+            links_diagnosis.append(link + 'jb') #鉴别（诊断）
 
-        '''		
-		for link in links_intro:
-			yield scrapy.Request(url=link, callback=self.intro_parse)
+        for link in links_intro:
+            yield scrapy.Request(url=link, callback=self.intro_parse)
 		
-		for link in links_treat:
-			yield scrapy.Request(url=link, callback=self.treat_parse)
+        # for link in links_treat:
+        #     yield scrapy.Request(url=link, callback=self.treat_parse)
 		
-		'''
-        for link in links_diagnosis:
-            yield scrapy.Request(url=link, callback=self.diagnosis_parse)
+		
+        # for link in links_diagnosis:
+        #      # step3.2: 向相应疾病页面发送请求
+        #     yield scrapy.Request(url=link, callback=self.diagnosis_parse)
 
+
+    # ==============================  step4: 以下均为页面解析  =============================
+
+    # 简介
     def intro_parse(self, response):
 
-        item = Jbk39Item()
-
-        time.sleep(CRAWL_INTERVAL)  # 延迟3秒执行
+        time.sleep(CRAWL_INTERVAL)
         print('goto intro_parse ')
+
+        # 一定要搞清楚路径，你在第一层根目录下
+        fs=open('fuke_step4_intro.html','w')
+        fs.write(response.body.decode())
+        fs.close()
+
+        item = Jbk39Item()      
         name = response.xpath('//div[@class="disease"]/h1/text()').extract()
         intro = response.xpath('//p[@class="introduction"]/text()').extract()
         txt = response.xpath('//span[@class="disease_basic_txt"]/text()').extract()
-        if (len(txt) > 1):
-            alias = txt[1]
-        else:
-            alias = ''
+
+        alias = txt[1] if len(txt) > 1 else ''
+        
         item['name'] = name[0]
         item['intro'] = intro[0]
-        item['alias'] = alias
+        item['alias'] = alias.strip()
         item['department'] = '妇科'
         item['classify'] = 'intro'
         yield item
 
+    # 治疗
     def treat_parse(self, response):
 
-        time.sleep(CRAWL_INTERVAL)  # 延迟3秒执行
+        time.sleep(CRAWL_INTERVAL)  
         print('goto treat_parse')
 
         item = Jbk39Item()
 
-        name = response.xpath('//div[@class="disease"]/h1/text()').extract()
+        name = response.xpath('//div[@class="disease"]/h1/text()').extract()[0]
 
         common_treat = []
         chinese_med_treat = []
@@ -118,32 +130,34 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
 
         yield item
 
-    '''
-    description: 诊断
-    param {*} self
-    param {*} response
-    return {*}
-    '''
+
+    # 鉴别（诊断）
     def diagnosis_parse(self, response):
 
-        time.sleep(CRAWL_INTERVAL)  # 延迟3秒执行
+
+        
+        # 一定要搞清楚路径，你在第一层根目录下
+        fs=open('fuke_step4_jb.html','w')
+        fs.write(response.body.decode())
+        fs.close()
+
+        time.sleep(CRAWL_INTERVAL)   
         print('goto diagnosis_parse')
         item = Jbk39Item()
-        name = response.xpath('//div[@class="disease"]/h1/text()').extract()
-        diagnosis = []
-        identify = []
 
-        #text_lists = response.xpath('//p[@class="article_name"]/text() | //p[@class="article_content_text"]/text()').extract()
+        # 疾病名称
+        name = response.xpath('//div[@class="disease"]/h1/text()').extract()[0]
+        diagnosis = [] # 诊断
+        identify = [] # 鉴别
+
         text_lists_diagnosis = response.xpath('//div[@class="art-box"]/p/text() | //div[@class="art-box"]/p/*/text() ').extract()
         text_lists_identify = response.xpath('//div[@class="article_paragraph"]/p/text() | //div[@class="article_paragraph"]/p/*/text() ').extract()
 
         for text in text_lists_diagnosis:
-
-            mystr = str(text.replace(u'\u3000', u''))
+            mystr = str(text.replace(u'\u3000', u'')) # \u3000 全角空白符
             diagnosis.append(mystr)
 
         for text in text_lists_identify:
-
             mystr = str(text.replace(u'\u3000', u''))
             identify.append(mystr)
 

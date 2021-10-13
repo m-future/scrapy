@@ -1,7 +1,7 @@
 '''
 Author: mfuture@qq.com
 Date: 2021-04-22 14:28:08
-LastEditTime: 2021-10-12 17:40:25
+LastEditTime: 2021-10-13 00:27:52
 LastEditors: mfuture@qq.com
 Description: 
 FilePath: /jbk39/jbk39/pipelines.py
@@ -26,7 +26,13 @@ class Jbk39Pipeline(object):
 	def process_item(self, item, spider):
 			# self.f.write(json.dumps(dict(item),ensure_ascii=False))
 			# self.f.write('\n')
-			db.create("diagnosis",item)
+			if item['classify']=='diagnosis':
+    				db.create("diagnosis",item)
+			elif item['classify']=='treat':
+    				db.create_treat("diagnosis",item)
+			elif item['classify']=='intro':
+    				db.create_intro("diagnosis",item)   				
+    			
 			return item
 
 	def close_spider(self,spider):

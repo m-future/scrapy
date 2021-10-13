@@ -1,7 +1,7 @@
 '''
 Author: mfuture@qq.com
 Date: 2021-10-12 14:33:50
-LastEditTime: 2021-10-12 17:15:58
+LastEditTime: 2021-10-13 01:14:07
 LastEditors: mfuture@qq.com
 Description:  执行数据库操作
 FilePath: /jbk39/jbk39/lib/db_service.py
@@ -9,22 +9,46 @@ FilePath: /jbk39/jbk39/lib/db_service.py
 #! /usr/bin/python
 # -*- coding: UTF-8 -*-
 
- 
+
 from .config.pymysql import UsingMysql
 import random
+import json
 
 # with UsingMysql(log_time=True) as um:
 
 
 class database():
-    def select(table,data): 
+    def select(table, data):
         with UsingMysql(log_time=True) as um:
             um.cursor.execute("select count(id) as total from diagnosis")
             data = um.cursor.fetchone()
             print("-- 当前数量: %d " % data['total'])
-    def create(table,item):
+
+    def create(table, item):
         with UsingMysql(log_time=True) as um:
-            sql="insert into %s values( null,'%s')" %(table,item['name'][0])
+            identify = json.dumps(item['identify'], ensure_ascii=False)
+            diagnosis = json.dumps(item['diagnosis'], ensure_ascii=False)
+
+            sql = "insert into %s(department,`name`,identify,diagnosis) values('%s','%s','%s','%s')" % (
+                table, item['department'], item['name'], identify, diagnosis)
             um.cursor.execute(sql)
-            # data = um.cursor.fetchone()
-            print("【%s】增加成功" %(item['name'][0]))
+            print("【%s】增加成功" % (item['name']))
+
+    def create_treat(table, item):
+        with UsingMysql(log_time=True) as um:
+            identify = json.dumps(item['common_treat'], ensure_ascii=False)
+            diagnosis = json.dumps(
+                item['chinese_med_treat'], ensure_ascii=False)
+
+            sql = "update %s set common_treat='%s', chinese_med_treat='%s' where `name`= '%s' " % (
+                table, identify, diagnosis, item['name'])
+            um.cursor.execute(sql)
+            print("【%s】更新成功" % (item['name']))
+
+    def create_intro(table, item):
+        with UsingMysql(log_time=True) as um:
+
+            sql = "update %s set alias='%s', introduction='%s' where `name`= '%s' " % (
+                table, item['alias'], item['intro'], item['name'])
+            um.cursor.execute(sql)
+            print("【%s】更新成功" % (item['name']))
