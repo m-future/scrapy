@@ -69,7 +69,7 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
         print('goto intro_parse ')
 
         # 一定要搞清楚路径，你在第一层根目录下
-        fs=open('fuke_step4_intro.html','w')
+        fs=open('data/fuke_step4_intro.html','w')
         fs.write(response.body.decode())
         fs.close()
 
@@ -92,6 +92,11 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
 
         time.sleep(CRAWL_INTERVAL)  
         print('goto treat_parse')
+
+        # 一定要搞清楚路径，你在第一层根目录下
+        fs=open('data/fuke_step4_yyzl.html','w')
+        fs.write(response.body.decode())
+        fs.close()
 
         item = Jbk39Item()
 
@@ -131,7 +136,7 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
 
         
         # 一定要搞清楚路径，你在第一层根目录下
-        fs=open('fuke_step4_jb.html','w')
+        fs=open('data/fuke_step4_jb.html','w')
         fs.write(response.body.decode())
         fs.close()
 
