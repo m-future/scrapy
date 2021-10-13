@@ -1,3 +1,11 @@
+'''
+Author: mfuture@qq.com
+Date: 2021-04-21 16:41:24
+LastEditTime: 2021-10-13 16:14:22
+LastEditors: mfuture@qq.com
+Description: scrapy middleware
+FilePath: /health39/jbk39/middlewares.py
+'''
 # Define here the models for your spider middleware
 #
 # See documentation in:
@@ -85,6 +93,11 @@ class Jbk39DownloaderMiddleware:
 
     def process_response(self, request, response, spider):
         # Called with the response returned from the downloader.
+
+         # 一定要搞清楚路径，你在第一层根目录下
+        fs=open('data/HtmlResponse.html','w')
+        fs.write(response.body.decode())
+        fs.close()
 
         # Must either;
         # - return a Response object

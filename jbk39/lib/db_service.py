@@ -1,10 +1,10 @@
 '''
 Author: mfuture@qq.com
 Date: 2021-10-12 14:33:50
-LastEditTime: 2021-10-13 11:36:10
+LastEditTime: 2021-10-13 17:20:37
 LastEditors: mfuture@qq.com
 Description:  执行数据库操作
-FilePath: /jbk39/jbk39/lib/db_service.py
+FilePath: /health39/jbk39/lib/db_service.py
 '''
 #! /usr/bin/python
 # -*- coding: UTF-8 -*-
@@ -36,9 +36,11 @@ class database():
 
     def update_treat(table, item):
         with UsingMysql(log_time=True) as um:
-            identify = json.dumps(item['common_treat'], ensure_ascii=False)
-            diagnosis = json.dumps(
-                item['chinese_med_treat'], ensure_ascii=False)
+            try:
+                identify = json.dumps(item['common_treat'], ensure_ascii=False)
+                diagnosis = json.dumps(item['chinese_med_treat'], ensure_ascii=False)
+            except Exception as e:
+                print(e)
 
             sql = "update %s set common_treat='%s', chinese_med_treat='%s' where `name`= '%s' " % (
                 table, identify, diagnosis, item['name'])
