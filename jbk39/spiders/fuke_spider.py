@@ -5,18 +5,12 @@ import logging
 from jbk39.items import Jbk39Item
 import json
 
-CRAWL_INTERVAL= 0.5 #睡眠时间，防止爬虫被墙
+CRAWL_INTERVAL= 0.5 #睡眠时间，反爬
 
 
 class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
 
     name = "fuke"  # 定义蜘蛛名
-
-    custom_settings = {
-        "DEFAULT_REQUEST_HEADERS": {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36',
-        }
-    }
 
     # step1: 开始请求妇科疾病
     def start_requests(self):
@@ -54,11 +48,11 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
             links_treat.append(link + 'yyzl') #治疗
             links_diagnosis.append(link + 'jb') #鉴别（诊断）
 
-        for link in links_intro:
-            yield scrapy.Request(url=link, callback=self.intro_parse)
+        # for link in links_intro:
+        #     yield scrapy.Request(url=link, callback=self.intro_parse)
 		
-        # for link in links_treat:
-        #     yield scrapy.Request(url=link, callback=self.treat_parse)
+        for link in links_treat:
+            yield scrapy.Request(url=link, callback=self.treat_parse)
 		
 		
         # for link in links_diagnosis:

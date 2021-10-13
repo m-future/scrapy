@@ -4,9 +4,12 @@
 # https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 
 from scrapy import signals
+import random
 
 # useful for handling different item types with a single interface
 from itemadapter import is_item, ItemAdapter
+from scrapy.downloadermiddlewares.useragent import UserAgentMiddleware 
+from fake_useragent import UserAgent # 生成随机 useragent  
 
 
 class Jbk39SpiderMiddleware:
@@ -101,3 +104,12 @@ class Jbk39DownloaderMiddleware:
 
     def spider_opened(self, spider):
         spider.logger.info('Spider opened: %s' % spider.name)
+
+
+class RandomUserAgent(UserAgentMiddleware):    # 如何运行此中间件? settings 直接添加就OK
+    def process_request(self, request, spider):
+        # ua = random.choice(user_agent_list)
+        # 关于可能出现的错误请参考这篇文档 https://blog.csdn.net/yilovexing/article/details/89044980
+        ua = UserAgent().random
+        # 在请求头里设置ua
+        request.headers.setdefault("User-Agent",ua)

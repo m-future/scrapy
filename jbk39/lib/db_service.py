@@ -1,7 +1,7 @@
 '''
 Author: mfuture@qq.com
 Date: 2021-10-12 14:33:50
-LastEditTime: 2021-10-13 01:14:07
+LastEditTime: 2021-10-13 11:36:10
 LastEditors: mfuture@qq.com
 Description:  执行数据库操作
 FilePath: /jbk39/jbk39/lib/db_service.py
@@ -24,7 +24,7 @@ class database():
             data = um.cursor.fetchone()
             print("-- 当前数量: %d " % data['total'])
 
-    def create(table, item):
+    def create_diagnosis(table, item):
         with UsingMysql(log_time=True) as um:
             identify = json.dumps(item['identify'], ensure_ascii=False)
             diagnosis = json.dumps(item['diagnosis'], ensure_ascii=False)
@@ -32,9 +32,9 @@ class database():
             sql = "insert into %s(department,`name`,identify,diagnosis) values('%s','%s','%s','%s')" % (
                 table, item['department'], item['name'], identify, diagnosis)
             um.cursor.execute(sql)
-            print("【%s】增加成功" % (item['name']))
+            print("诊断-【%s】创建成功" % (item['name']))
 
-    def create_treat(table, item):
+    def update_treat(table, item):
         with UsingMysql(log_time=True) as um:
             identify = json.dumps(item['common_treat'], ensure_ascii=False)
             diagnosis = json.dumps(
@@ -43,7 +43,7 @@ class database():
             sql = "update %s set common_treat='%s', chinese_med_treat='%s' where `name`= '%s' " % (
                 table, identify, diagnosis, item['name'])
             um.cursor.execute(sql)
-            print("【%s】更新成功" % (item['name']))
+            print("诊疗-【%s】更新成功" % (item['name']))
 
     def create_intro(table, item):
         with UsingMysql(log_time=True) as um:
@@ -51,4 +51,4 @@ class database():
             sql = "update %s set alias='%s', introduction='%s' where `name`= '%s' " % (
                 table, item['alias'], item['intro'], item['name'])
             um.cursor.execute(sql)
-            print("【%s】更新成功" % (item['name']))
+            print("简介-【%s】更新成功" % (item['name']))

@@ -1,7 +1,7 @@
 '''
 Author: mfuture@qq.com
 Date: 2021-04-22 14:35:56
-LastEditTime: 2021-10-12 18:31:02
+LastEditTime: 2021-10-13 09:17:00
 LastEditors: mfuture@qq.com
 Description: 
 FilePath: /jbk39/jbk39/settings.py
@@ -71,7 +71,10 @@ SPIDER_MIDDLEWARES = {
 # Enable or disable downloader middlewares
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 DOWNLOADER_MIDDLEWARES = {
+   'scrapy.downloadermiddlewares.useragent.UserAgentMiddleware': None,
    'jbk39.middlewares.Jbk39DownloaderMiddleware': 543,
+   'jbk39.middlewares.RandomUserAgent': 542,
+
 }
 
 # Enable or disable extensions
