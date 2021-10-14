@@ -1,7 +1,7 @@
 '''
 Author: mfuture@qq.com
 Date: 2021-04-22 14:28:08
-LastEditTime: 2021-10-14 17:53:46
+LastEditTime: 2021-10-14 23:41:38
 LastEditors: mfuture@qq.com
 Description:
 FilePath: /health39/jbk39/pipelines.py
@@ -46,7 +46,9 @@ class Jbk39Pipeline(object):
             elif item['classify'] == 'symptom':
                     db.update_symptom("disease",item)				
             elif item['classify'] == 'cause':
-                    db.update_cause("disease",item)               
+                    db.update_cause("disease",item) 
+            elif item['classify'] == 'ipproxy':
+                    db.create_ipproxy(item)              
             return item
 
     def close_spider(self,spider):

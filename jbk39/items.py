@@ -1,7 +1,7 @@
 '''
 Author: mfuture@qq.com
 Date: 2021-10-14 12:42:00
-LastEditTime: 2021-10-14 17:50:25
+LastEditTime: 2021-10-14 23:18:41
 LastEditors: mfuture@qq.com
 Description: scrapy item 容器
 FilePath: /health39/jbk39/items.py
@@ -28,5 +28,7 @@ class Jbk39Item(scrapy.Item):
     chinese_med_treat = scrapy.Field() #中医治疗
     symptom=scrapy.Field() # 症状
     cause=scrapy.Field() # 病因
+
+    ipproxy=scrapy.Field() # 代理IP，反爬
 
     pass

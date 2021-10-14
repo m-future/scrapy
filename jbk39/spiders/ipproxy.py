@@ -1,48 +1,40 @@
 '''
 Author: mfuture@qq.com
 Date: 2021-10-14 19:41:40
-LastEditTime: 2021-10-14 21:42:46
+LastEditTime: 2021-10-15 00:07:39
 LastEditors: mfuture@qq.com
 Description: 
 FilePath: /health39/jbk39/spiders/ipproxy.py
 '''
 import scrapy
-import time
-
-CRAWL_INTERVAL = 0.2  # 睡眠时间，反爬
+from jbk39.items import Jbk39Item
 
 class IpproxySpider(scrapy.Spider):
     name = 'ipproxy'
- 
 
-    # custom_settings = {
-    #     "DEFAULT_REQUEST_HEADERS": {
-    #     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36',
-    #     }
-    # }
-
-
+    custom_settings = {
+        "RANDOM_DELAY": 3
+    }
 
     def start_requests(self):
 
-        for i in range(50):
-            time.sleep(CRAWL_INTERVAL)
-            print(i)
-            url='https://www.kuaidaili.com/free/inha/{}/'.format(i+1)
+        for i in range(5):     
+            url='http://www.feidudaili.com/index/gratis/index?page={}'.format(i+1)
             yield scrapy.Request(url=url, callback=self.init_parse)
 
     def init_parse(self, response):
 
-        return
+        item = Jbk39Item()
 
-        departments = response.xpath('//div[contains(@class,"lookup_department")]//li[position()>1]/a')
-    
-        for department in departments:
-            pinyin=department.xpath("./@href").extract()[0].split("/")[2] #拼音
-            
-            url=self.base_url+pinyin+'/'
+        ips_list = response.xpath('//tbody/tr')
 
-            yield scrapy.Request(url=url, callback=self.section_parse)
+        for ip_list in ips_list:
+
+            ipproxy=ip_list.xpath('./td/text()').extract()
+
+            item['ipproxy']={"ip":ipproxy[0],"port":ipproxy[1]}
+            item['classify']='ipproxy'
+            yield item
 
     def parse(self, response):
         pass

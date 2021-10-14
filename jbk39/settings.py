@@ -1,7 +1,7 @@
 '''
 Author: mfuture@qq.com
 Date: 2021-04-22 14:35:56
-LastEditTime: 2021-10-14 21:57:09
+LastEditTime: 2021-10-15 00:14:45
 LastEditors: mfuture@qq.com
 Description: 
 FilePath: /health39/jbk39/settings.py
@@ -49,7 +49,7 @@ DOWNLOAD_TIMEOUT = 10
 # Configure a delay for requests for the same website (default: 0)
 # See https://docs.scrapy.org/en/latest/topics/settings.html#download-delay
 # See also autothrottle settings and docs
-#DOWNLOAD_DELAY = 3
+DOWNLOAD_DELAY = 0.2 
 # The download delay setting will honor only one of:
 #CONCURRENT_REQUESTS_PER_DOMAIN = 16
 #CONCURRENT_REQUESTS_PER_IP = 16
@@ -69,7 +69,7 @@ DOWNLOAD_TIMEOUT = 10
 # Enable or disable spider middlewares
 # See https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 SPIDER_MIDDLEWARES = {
-    'jbk39.middlewares.Jbk39SpiderMiddleware': 543,  # 执行顺序
+    'jbk39.middlewares.Jbk39SpiderMiddleware': 544,  # 执行顺序
 }
 
 # Enable or disable downloader middlewares

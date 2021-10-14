@@ -1,7 +1,7 @@
 '''
 Author: mfuture@qq.com
 Date: 2021-04-21 16:41:24
-LastEditTime: 2021-10-14 22:57:23
+LastEditTime: 2021-10-14 23:37:29
 LastEditors: mfuture@qq.com
 Description: scrapy middleware
 FilePath: /health39/jbk39/middlewares.py
@@ -119,7 +119,7 @@ class Jbk39DownloaderMiddleware:
 
         # self.proxy= "http://113.96.219.105:4015"
 
-        request.meta['proxy'] = self.proxy
+        # request.meta['proxy'] = self.proxy
       
         return None
 
@@ -138,16 +138,22 @@ class Jbk39DownloaderMiddleware:
         return response
 
     def process_exception(self, request, exception, spider):
+        # Called when a download handler or a process_request()
+        # (from other downloader middleware) raises an exception.
 
+        # Must either:
+        # - return None: continue processing this exception
+        # - return a Response object: stops process_exception() chain
+        # - return a Request object: stops process_exception() chain
 
         # 捕获几乎所有的异常
         if isinstance(exception, self.ALL_EXCEPTIONS):
             # 在日志中打印异常类型
-            print(exception)
             spider.logger.info("[Got exception]   {}".format(exception))
-            spider.logger.info("[需要更换代理重试，之前代理为]   {}".format('self.proxy'))
+            spider.logger.info("[需要更换代理重试，之前的代理为]   {}".format(self.proxy))
             
             self.proxy=random_proxy(self.proxy)
+            spider.logger.info("[更换之后的代理为]   {}".format(self.proxy))
 
             new_request = request.copy()
             new_request_l = new_request.replace(url=request.url)
