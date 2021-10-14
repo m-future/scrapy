@@ -1,7 +1,7 @@
 '''
 Author: mfuture@qq.com
 Date: 2021-04-22 14:35:56
-LastEditTime: 2021-10-14 12:08:15
+LastEditTime: 2021-10-14 18:30:28
 LastEditors: mfuture@qq.com
 Description: 
 FilePath: /health39/jbk39/settings.py
@@ -32,7 +32,7 @@ ITEM_PIPELINES = {
 ROBOTSTXT_OBEY = False
 
 # 日志记录
-LOG_LEVEL = 'INFO' # 由高到低等级分为：CRITICAL ERROR WARNING INFO DEBUG
+LOG_LEVEL = 'DEBUG' # 由高到低等级分为：CRITICAL ERROR WARNING INFO DEBUG
 to_day = datetime.datetime.now()
 # 注意此处相对路径的写法，必须带上项目名称目录
 log_file_path = './jbk39/log/scrapy_{}_{}_{}.log'.format(to_day.year, to_day.month, to_day.day)

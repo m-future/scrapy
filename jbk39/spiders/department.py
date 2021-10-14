@@ -1,15 +1,7 @@
 '''
 Author: mfuture@qq.com
 Date: 2021-10-13 22:46:09
-LastEditTime: 2021-10-14 09:12:07
-LastEditors: mfuture@qq.com
-Description: 
-FilePath: /health39/jbk39/spiders/department.py
-'''
-'''
-Author: mfuture@qq.com
-Date: 2021-10-13 22:46:09
-LastEditTime: 2021-10-13 23:44:11
+LastEditTime: 2021-10-14 19:57:44
 LastEditors: mfuture@qq.com
 Description: 预先爬取各科室并存储，语句解释可参考 disease 爬虫
 FilePath: /health39/jbk39/spiders/department.py

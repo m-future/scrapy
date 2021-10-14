@@ -1,7 +1,7 @@
 '''
 Author: mfuture@qq.com
 Date: 2021-04-27 11:38:22
-LastEditTime: 2021-10-14 17:39:48
+LastEditTime: 2021-10-14 18:38:34
 LastEditors: mfuture@qq.com
 Description: 特定科室下疾病内容的爬取
 FilePath: /health39/jbk39/spiders/disease.py
@@ -17,7 +17,7 @@ import re
 
 from jbk39.lib.db_service import database as db
 
-CRAWL_INTERVAL = 0.005  # 睡眠时间，反爬
+CRAWL_INTERVAL = 0.01  # 睡眠时间，反爬
 
 
 class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
@@ -27,7 +27,9 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
     # step1: 开始请求
     def start_requests(self):
 
-        departments = db.select_department(["'fuke'", "'neike'"])
+        print('--start request')
+
+        departments = db.select_department(['fuke'])
 
         base_url = "https://jbk.39.net/bw/"
 
@@ -37,21 +39,20 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
             pinyin = department["pinyin"]
             url = '{}{}_t1/'.format(base_url, department["pinyin"])
             meta = {"base_url": base_url, "pinyin": pinyin}
+
+            print(url)
             yield scrapy.Request(url=url, meta=meta, callback=self.init_parse, errback=self.handleError)
 
     # step2: 获取疾病分页
-
     def init_parse(self, response):
 
         base_url = "{}{}_t1_p".format(
             response.meta["base_url"], response.meta["pinyin"])
 
-        # print('goto init_parse')
+        print('--init request')
 
         pages = response.xpath(
             '//ul[@class="result_item_dots"]/li/span[last()-1]/a/text()')[0].extract()
-
-        print('--pages:{}'.format(pages))
 
         for i in range(int(pages)):
 
@@ -64,35 +65,34 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
     # step3: 获取某一分页的所有疾病
     def parse(self, response):
 
-        # print('goto parse ')
-
-        links_intro = []
-        links_treat = []
-        links_diagnosis = []
+        print('--start parse')
 
         # 获取子项目的 url
         diseaseUrls = response.xpath('//*[@class="result_item_top_l"]')
         for item in diseaseUrls:
             # 该病的url，比如 "https://jbk.39.net/jxzgnmy/"
-            link = item.xpath('a/@href').extract()[0]
+            
             time.sleep(CRAWL_INTERVAL)
-            # # 诊断
-            # yield scrapy.Request(url=link + 'jb' , meta=response.meta, callback=self.diagnosis_parse, errback=self.handleError)
-            # # 简介
-            # yield scrapy.Request(url=link + 'jbzs', callback=self.intro_parse)
-            # # 治疗
-            # yield scrapy.Request(url=link + 'yyzl', callback=self.treat_parse)
-            # # 症状
-            yield scrapy.Request(url=link + 'zztz', callback=self.symptom_parse)
+           
+            link = item.xpath('a/@href').extract()[0]
 
+            # # 诊断，初始添加，先运行这里
+            # yield scrapy.Request(url=link + 'jb' , meta=response.meta, callback=self.diagnosis_parse, errback=self.handleError)
+           
+            # 简介
+            yield scrapy.Request(url=link + 'jbzs', callback=self.intro_parse)
+            # 治疗
+            yield scrapy.Request(url=link + 'yyzl', callback=self.treat_parse)
+            # 症状
+            yield scrapy.Request(url=link + 'zztz', callback=self.symptom_parse)
+            # 病因
+            yield scrapy.Request(url=link + 'blby', callback=self.cause_parse)
 
     # ==============================  step4: 以下均为页面解析  =============================
 
     # 简介
 
     def intro_parse(self, response):
-
-        # print('goto intro_parse ')
 
         item = Jbk39Item()
         name = response.xpath('//div[@class="disease"]/h1/text()').extract()[0]
@@ -112,7 +112,6 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
     # 治疗
     def treat_parse(self, response):
 
-        # print('goto treat_parse')
         item = Jbk39Item()
 
         name = response.xpath('//div[@class="disease"]/h1/text()').extract()[0]
@@ -145,7 +144,6 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
     # 症状
     def symptom_parse(self, response):
  
-        # print('goto treat_parse')
         item = Jbk39Item()
 
         name = response.xpath('//div[@class="disease"]/h1/text()').extract()[0]
@@ -159,6 +157,28 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
 
         item["symptom"] = symptom
         item['classify'] = 'symptom'
+        item['name']=name
+
+        yield item
+
+    # 病因
+    def cause_parse(self, response):
+
+     
+ 
+        item = Jbk39Item()
+
+        name = response.xpath('//div[@class="disease"]/h1/text()').extract()[0]
+
+        cause = []
+        text_lists_cause= response.xpath('//div[@class="article_box"]//p').extract()
+  
+        for text in text_lists_cause:
+            mystr = strFunc().cleanStr(text)
+            cause.append(mystr)
+
+        item["cause"] = cause
+        item['classify'] = 'cause'
         item['name']=name
 
         yield item
