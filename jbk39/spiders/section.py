@@ -1,18 +1,18 @@
 '''
 Author: mfuture@qq.com
 Date: 2021-10-13 22:46:09
-LastEditTime: 2021-10-14 00:32:53
+LastEditTime: 2021-10-14 09:12:07
 LastEditors: mfuture@qq.com
 Description: 
-FilePath: /health39/jbk39/spiders/section.py
+FilePath: /health39/jbk39/spiders/department.py
 '''
 '''
 Author: mfuture@qq.com
 Date: 2021-10-13 22:46:09
 LastEditTime: 2021-10-13 23:44:11
 LastEditors: mfuture@qq.com
-Description: 预先爬取各科室并存储
-FilePath: /health39/jbk39/spiders/section.py
+Description: 预先爬取各科室并存储，语句解释可参考 disease 爬虫
+FilePath: /health39/jbk39/spiders/department.py
 '''
 from pymysql import NULL
 import scrapy
@@ -22,7 +22,7 @@ from jbk39.items import Jbk39Item
 CRAWL_INTERVAL = 0.2  # 睡眠时间，反爬
 
 class SectionSpider(scrapy.Spider):
-    name = 'section'
+    name = 'department'
 
     def __init__(self):
         self.base_url='https://jbk.39.net/bw/'
@@ -33,10 +33,10 @@ class SectionSpider(scrapy.Spider):
 
     def init_parse(self, response):
 
-        sections = response.xpath('//div[contains(@class,"lookup_department")]//li[position()>1]/a')
+        departments = response.xpath('//div[contains(@class,"lookup_department")]//li[position()>1]/a')
     
-        for section in sections:
-            pinyin=section.xpath("./@href").extract()[0].split("/")[2] #拼音
+        for department in departments:
+            pinyin=department.xpath("./@href").extract()[0].split("/")[2] #拼音
             
             url=self.base_url+pinyin+'/'
 
@@ -47,8 +47,6 @@ class SectionSpider(scrapy.Spider):
         time.sleep(CRAWL_INTERVAL)
 
         item=Jbk39Item()
-
-
 
         parent=response.xpath('//div[contains(@class,"lookup_department")]//li[@class="active"]/a') #中文名
 
