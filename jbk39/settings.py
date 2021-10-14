@@ -1,7 +1,7 @@
 '''
 Author: mfuture@qq.com
 Date: 2021-04-22 14:35:56
-LastEditTime: 2021-10-14 18:30:28
+LastEditTime: 2021-10-14 21:57:09
 LastEditors: mfuture@qq.com
 Description: 
 FilePath: /health39/jbk39/settings.py
@@ -23,7 +23,7 @@ SPIDER_MODULES = ['jbk39.spiders']
 NEWSPIDER_MODULE = 'jbk39.spiders'
 
 ITEM_PIPELINES = {
-   'jbk39.pipelines.Jbk39Pipeline': 300,
+    'jbk39.pipelines.Jbk39Pipeline': 300,
 }
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'jbk39 (+http://www.yourdomain.com)'
@@ -32,12 +32,16 @@ ITEM_PIPELINES = {
 ROBOTSTXT_OBEY = False
 
 # 日志记录
-LOG_LEVEL = 'DEBUG' # 由高到低等级分为：CRITICAL ERROR WARNING INFO DEBUG
+LOG_LEVEL = 'INFO'  # 由高到低等级分为：CRITICAL ERROR WARNING INFO DEBUG
 to_day = datetime.datetime.now()
 # 注意此处相对路径的写法，必须带上项目名称目录
-log_file_path = './jbk39/log/scrapy_{}_{}_{}.log'.format(to_day.year, to_day.month, to_day.day)
+log_file_path = './jbk39/log/scrapy_{}_{}_{}.log'.format(
+    to_day.year, to_day.month, to_day.day)
 LOG_FILE = log_file_path
- 
+
+# 超时
+DOWNLOAD_TIMEOUT = 10 
+
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 #CONCURRENT_REQUESTS = 32
@@ -57,37 +61,37 @@ LOG_FILE = log_file_path
 #TELNETCONSOLE_ENABLED = False
 
 # Override the default request headers:
-#DEFAULT_REQUEST_HEADERS = {
+# DEFAULT_REQUEST_HEADERS = {
 #   'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
 #   'Accept-Language': 'en',
-#}
+# }
 
 # Enable or disable spider middlewares
 # See https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 SPIDER_MIDDLEWARES = {
-   'jbk39.middlewares.Jbk39SpiderMiddleware': 543, #执行顺序
+    'jbk39.middlewares.Jbk39SpiderMiddleware': 543,  # 执行顺序
 }
 
 # Enable or disable downloader middlewares
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 DOWNLOADER_MIDDLEWARES = {
-   'scrapy.downloadermiddlewares.useragent.UserAgentMiddleware': None,
-   'jbk39.middlewares.Jbk39DownloaderMiddleware': 543,
-   'jbk39.middlewares.RandomUserAgent': 542,
+    'scrapy.downloadermiddlewares.useragent.UserAgentMiddleware': None,
+    'jbk39.middlewares.Jbk39DownloaderMiddleware': 543,
+    'jbk39.middlewares.RandomUserAgent': 542,
 
 }
 
 # Enable or disable extensions
 # See https://docs.scrapy.org/en/latest/topics/extensions.html
-#EXTENSIONS = {
+# EXTENSIONS = {
 #    'scrapy.extensions.telnet.TelnetConsole': None,
-#}
+# }
 
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
-#ITEM_PIPELINES = {
+# ITEM_PIPELINES = {
 #    'jbk39.pipelines.Jbk39Pipeline': 300,
-#}
+# }
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/autothrottle.html

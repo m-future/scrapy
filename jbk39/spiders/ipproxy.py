@@ -1,7 +1,7 @@
 '''
 Author: mfuture@qq.com
 Date: 2021-10-14 19:41:40
-LastEditTime: 2021-10-14 20:20:38
+LastEditTime: 2021-10-14 21:42:46
 LastEditors: mfuture@qq.com
 Description: 
 FilePath: /health39/jbk39/spiders/ipproxy.py
@@ -9,26 +9,29 @@ FilePath: /health39/jbk39/spiders/ipproxy.py
 import scrapy
 import time
 
-CRAWL_INTERVAL = 2  # 睡眠时间，反爬
+CRAWL_INTERVAL = 0.2  # 睡眠时间，反爬
 
 class IpproxySpider(scrapy.Spider):
     name = 'ipproxy'
-    allowed_domains = ['proxy.com']
-    start_urls = ['http://proxy.com/']
+ 
+
+    # custom_settings = {
+    #     "DEFAULT_REQUEST_HEADERS": {
+    #     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36',
+    #     }
+    # }
 
 
 
     def start_requests(self):
 
-        for i in range(10):
+        for i in range(50):
             time.sleep(CRAWL_INTERVAL)
             print(i)
             url='https://www.kuaidaili.com/free/inha/{}/'.format(i+1)
             yield scrapy.Request(url=url, callback=self.init_parse)
 
     def init_parse(self, response):
-
-        print(response)
 
         return
 

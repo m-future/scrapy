@@ -1,7 +1,7 @@
 '''
 Author: mfuture@qq.com
 Date: 2021-10-12 14:33:50
-LastEditTime: 2021-10-14 18:25:22
+LastEditTime: 2021-10-14 22:43:21
 LastEditors: mfuture@qq.com
 Description:  执行数据库操作
 FilePath: /health39/jbk39/lib/db_service.py
@@ -76,7 +76,6 @@ class database():
             print("症状-【%s】更新成功" % (item['name']))
 
     # 创建科室数据库
-
     def create_department(item):
         with UsingMysql(log_time=True) as um:
             item = item["department"]
@@ -101,3 +100,14 @@ class database():
             data = um.cursor.fetchall()
 
             return data
+
+    # 随机选取一个代理 ip
+    def random_proxy(proxy):
+        with UsingMysql(log_time=True) as um:
+            if proxy: # 弃用旧ip，启用新ip
+                ip=proxy.split("/")[2]
+                um.cursor.execute("update ip_proxy set available = 0, failed_times=failed_times+1 where ip= '%s'" % (ip))  
+                          
+            um.cursor.execute("select ip, port from ip_proxy where available=1")
+            return um.cursor.fetchone()
+

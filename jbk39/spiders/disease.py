@@ -1,7 +1,7 @@
 '''
 Author: mfuture@qq.com
 Date: 2021-04-27 11:38:22
-LastEditTime: 2021-10-14 18:38:34
+LastEditTime: 2021-10-14 21:10:48
 LastEditors: mfuture@qq.com
 Description: 特定科室下疾病内容的爬取
 FilePath: /health39/jbk39/spiders/disease.py
@@ -39,9 +39,7 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
             pinyin = department["pinyin"]
             url = '{}{}_t1/'.format(base_url, department["pinyin"])
             meta = {"base_url": base_url, "pinyin": pinyin}
-
-            print(url)
-            yield scrapy.Request(url=url, meta=meta, callback=self.init_parse, errback=self.handleError)
+            yield scrapy.Request(url=url, meta=meta, callback=self.init_parse)
 
     # step2: 获取疾病分页
     def init_parse(self, response):
@@ -60,7 +58,7 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
 
             # step2.2: 请求某一分页
             url = "{}{}".format(base_url, str(i+1))
-            yield scrapy.Request(url=url, meta=response.meta, callback=self.parse, errback=self.handleError)
+            yield scrapy.Request(url=url, meta=response.meta, callback=self.parse)
 
     # step3: 获取某一分页的所有疾病
     def parse(self, response):

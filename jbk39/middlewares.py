@@ -1,7 +1,7 @@
 '''
 Author: mfuture@qq.com
 Date: 2021-04-21 16:41:24
-LastEditTime: 2021-10-13 22:16:38
+LastEditTime: 2021-10-14 22:57:23
 LastEditors: mfuture@qq.com
 Description: scrapy middleware
 FilePath: /health39/jbk39/middlewares.py
@@ -19,6 +19,15 @@ from itemadapter import is_item, ItemAdapter
 from scrapy.downloadermiddlewares.useragent import UserAgentMiddleware 
 from fake_useragent import UserAgent # 生成随机 useragent  
 
+from scrapy.http import HtmlResponse
+from twisted.internet.error import TimeoutError, DNSLookupError, \
+    ConnectionRefusedError, ConnectionDone, ConnectError, \
+    ConnectionLost, TCPTimedOutError
+from scrapy.core.downloader.handlers.http11 import TunnelError
+from twisted.internet import defer
+from twisted.web.client import ResponseFailed
+
+from jbk39.lib.db_service import database as db
 
 class Jbk39SpiderMiddleware:
     # Not all methods need to be defined. If a method is not defined,
@@ -66,11 +75,29 @@ class Jbk39SpiderMiddleware:
     def spider_opened(self, spider):
         spider.logger.info('Spider opened: %s' % spider.name)
 
+# 随机选择一个 代理
+def random_proxy(proxy=None):
+    res=db.random_proxy(proxy)
+    proxy="http://{}:{}".format(res['ip'],res['port'])
+    return proxy
+    
+
+
+
 
 class Jbk39DownloaderMiddleware:
     # Not all methods need to be defined. If a method is not defined,
     # scrapy acts as if the downloader middleware does not modify the
     # passed objects.
+
+    ALL_EXCEPTIONS = (defer.TimeoutError, TimeoutError, DNSLookupError,
+                      ConnectionRefusedError, ConnectionDone, ConnectError,
+                      ConnectionLost, TCPTimedOutError, ResponseFailed,
+                      IOError, TunnelError)    
+
+    
+    def __init__(self):
+        self.proxy=random_proxy()
 
     @classmethod
     def from_crawler(cls, crawler):
@@ -89,31 +116,44 @@ class Jbk39DownloaderMiddleware:
         # - or return a Request object
         # - or raise IgnoreRequest: process_exception() methods of
         #   installed downloader middleware will be called
+
+        # self.proxy= "http://113.96.219.105:4015"
+
+        request.meta['proxy'] = self.proxy
+      
         return None
 
     def process_response(self, request, response, spider):
         # Called with the response returned from the downloader.
-
-         # 一定要搞清楚路径，你在第一层根目录下
-        fs=open('data/HtmlResponse.html','w')
-        fs.write(response.body.decode())
-        fs.close()
-
         # Must either;
         # - return a Response object
         # - return a Request object
         # - or raise IgnoreRequest
+        
+        # 一定要搞清楚路径，你在第一层根目录下
+        fs=open('data/HtmlResponse.html','w')
+        fs.write(response.body.decode())
+        fs.close()
+        
         return response
 
     def process_exception(self, request, exception, spider):
-        # Called when a download handler or a process_request()
-        # (from other downloader middleware) raises an exception.
 
-        # Must either:
-        # - return None: continue processing this exception
-        # - return a Response object: stops process_exception() chain
-        # - return a Request object: stops process_exception() chain
-        pass
+
+        # 捕获几乎所有的异常
+        if isinstance(exception, self.ALL_EXCEPTIONS):
+            # 在日志中打印异常类型
+            print(exception)
+            spider.logger.info("[Got exception]   {}".format(exception))
+            spider.logger.info("[需要更换代理重试，之前代理为]   {}".format('self.proxy'))
+            
+            self.proxy=random_proxy(self.proxy)
+
+            new_request = request.copy()
+            new_request_l = new_request.replace(url=request.url)
+            return new_request_l
+        # 打印出未捕获到的异常
+        spider.logger.info("[not contained exception]   {}".format(exception))
 
     def spider_opened(self, spider):
         spider.logger.info('Spider opened: %s' % spider.name)
