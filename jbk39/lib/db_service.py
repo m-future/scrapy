@@ -1,7 +1,7 @@
 '''
 Author: mfuture@qq.com
 Date: 2021-10-12 14:33:50
-LastEditTime: 2021-10-13 17:20:37
+LastEditTime: 2021-10-14 08:53:46
 LastEditors: mfuture@qq.com
 Description:  执行数据库操作
 FilePath: /health39/jbk39/lib/db_service.py
@@ -47,10 +47,22 @@ class database():
             um.cursor.execute(sql)
             print("诊疗-【%s】更新成功" % (item['name']))
 
-    def create_intro(table, item):
+    def update_intro(table, item):
         with UsingMysql(log_time=True) as um:
 
             sql = "update %s set alias='%s', introduction='%s' where `name`= '%s' " % (
                 table, item['alias'], item['intro'], item['name'])
             um.cursor.execute(sql)
             print("简介-【%s】更新成功" % (item['name']))
+
+
+    def create_section( item):
+        with UsingMysql(log_time=True) as um:
+
+            item=item["department"]
+   
+
+            sql = "insert into section (pinyin,chinese_name,parent) values('%s','%s','%s')" % (
+                item['pinyin'], item['chinese_name'], item['parent'])
+            um.cursor.execute(sql)
+            print("科室-【%s】创建成功" % (item['chinese_name']))

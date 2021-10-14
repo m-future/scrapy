@@ -13,7 +13,7 @@ class Jbk39Item(scrapy.Item):
     classify = scrapy.Field() # 分类
     intro = scrapy.Field() # 简介
     alias = scrapy.Field() # 别名
-    department = scrapy.Field() # 科室
+    department = scrapy.Field() # 科室 {"pinyin":"fuke","chinese_name":"妇科","pId":"fuchangke"}
     diagnosis = scrapy.Field() #诊断
     identify = scrapy.Field() #鉴别
     common_treat = scrapy.Field() #一般治疗

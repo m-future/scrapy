@@ -1,3 +1,11 @@
+'''
+Author: mfuture@qq.com
+Date: 2021-04-27 11:38:22
+LastEditTime: 2021-10-14 08:51:46
+LastEditors: mfuture@qq.com
+Description: 特定科室下疾病内容的爬取
+FilePath: /health39/jbk39/spiders/disease.py
+'''
 import scrapy
 import time  # 引入time模块
 import logging
@@ -7,12 +15,12 @@ import json
 from jbk39.lib.common import strFunc
 import re
 
-CRAWL_INTERVAL = 0.1  # 睡眠时间，反爬
+CRAWL_INTERVAL = 0.01  # 睡眠时间，反爬
 
 
 class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
 
-    name = "fuke"  # 定义蜘蛛名
+    name = "disease"  # 定义蜘蛛名
 
     # step1: 开始请求妇科疾病
     def start_requests(self):

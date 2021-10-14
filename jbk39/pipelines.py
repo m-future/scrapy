@@ -1,7 +1,7 @@
 '''
 Author: mfuture@qq.com
 Date: 2021-04-22 14:28:08
-LastEditTime: 2021-10-13 17:08:41
+LastEditTime: 2021-10-14 08:56:20
 LastEditors: mfuture@qq.com
 Description:
 FilePath: /health39/jbk39/pipelines.py
@@ -26,6 +26,9 @@ class Jbk39Pipeline(object):
             self.f = open('data/scrapyItem.json', 'w', encoding='utf-8')
 
     def process_item(self, item, spider):
+
+            # db.create_section(item)
+
             try:
                 self.f.write(json.dumps(dict(item), ensure_ascii=False))
                 self.f.write('\n')
@@ -38,7 +41,7 @@ class Jbk39Pipeline(object):
             elif item['classify']=='treat':
                     db.update_treat("disease",item)
             elif item['classify']=='intro':
-                    db.create_intro("disease",item)   				
+                    db.update_intro("disease",item)   				
                 
             return item
 
