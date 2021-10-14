@@ -1,3 +1,11 @@
+'''
+Author: mfuture@qq.com
+Date: 2021-10-14 12:42:00
+LastEditTime: 2021-10-14 16:19:10
+LastEditors: mfuture@qq.com
+Description: scrapy item 容器
+FilePath: /health39/jbk39/items.py
+'''
 # Define here the models for your scraped items
 #
 # See documentation in:
@@ -18,5 +26,6 @@ class Jbk39Item(scrapy.Item):
     identify = scrapy.Field() #鉴别
     common_treat = scrapy.Field() #一般治疗
     chinese_med_treat = scrapy.Field() #中医治疗
+    symptom=scrapy.Field() # 症状
 
     pass

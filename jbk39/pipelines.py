@@ -1,7 +1,7 @@
 '''
 Author: mfuture@qq.com
 Date: 2021-04-22 14:28:08
-LastEditTime: 2021-10-14 08:59:30
+LastEditTime: 2021-10-14 17:00:04
 LastEditors: mfuture@qq.com
 Description:
 FilePath: /health39/jbk39/pipelines.py
@@ -42,7 +42,9 @@ class Jbk39Pipeline(object):
             elif item['classify']=='treat':
                     db.update_treat("disease",item)
             elif item['classify']=='intro':
-                    db.update_intro("disease",item)   				
+                    db.update_intro("disease",item) 
+            elif item['classify'] == 'symptom':
+                    db.update_symptom("disease",item)				
                 
             return item
 
