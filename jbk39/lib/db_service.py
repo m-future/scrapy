@@ -1,7 +1,7 @@
 '''
 Author: mfuture@qq.com
 Date: 2021-10-12 14:33:50
-LastEditTime: 2021-10-15 00:04:42
+LastEditTime: 2021-10-15 10:03:46
 LastEditors: mfuture@qq.com
 Description:  执行数据库操作
 FilePath: /health39/jbk39/lib/db_service.py
@@ -88,7 +88,8 @@ class database():
     def select_department(department=None):
         with UsingMysql(log_time=True) as um:
             if not department:  # 全部科室
-                um.cursor.execute("select pinyin, chinese_name from department")
+                um.cursor.execute(
+                    "select pinyin, chinese_name from department")
             else:
                 # 格式化字符串，使其符合 mysql 语法
                 department = map(lambda x: "'{}'".format(x), department)
@@ -104,17 +105,20 @@ class database():
     # 随机选取一个代理 ip
     def random_proxy(proxy):
         with UsingMysql(log_time=True) as um:
-            if proxy: # 弃用旧ip，启用新ip
-                ip=proxy.split('/')[2].split(':')[0]
-                um.cursor.execute("update ip_proxy set available = 0, failed_times=failed_times+1 where ip= '%s'" % (ip))  
-                          
-            um.cursor.execute("select ip, port from ip_proxy where available=1")
+            if proxy:  # 弃用旧ip，启用新ip
+                ip = proxy.split('/')[2].split(':')[0]
+                um.cursor.execute(
+                    "update ip_proxy set available = 0, failed_times=failed_times+1 where ip= '%s'" % (ip))
+
+            um.cursor.execute(
+                "select ip, port from ip_proxy where available=1 order by rand()")
             return um.cursor.fetchone()
 
     # 创建代理ip
     def create_ipproxy(item):
         with UsingMysql(log_time=True) as um:
             item = item["ipproxy"]
-            sql = "insert into ip_proxy (ip,port) values('%s','%s')" % (item['ip'], item['port'])
+            sql = "insert into ip_proxy (ip,port,speed) values('%s','%s',%d) ON DUPLICATE KEY UPDATE speed = %d " % (
+                item['ip'], item['port'], item['speed'], item['speed'])
             um.cursor.execute(sql)
             print("ipproxy-【%s】创建成功" % (item['ip']))

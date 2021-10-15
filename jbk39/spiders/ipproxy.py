@@ -1,9 +1,9 @@
 '''
 Author: mfuture@qq.com
 Date: 2021-10-14 19:41:40
-LastEditTime: 2021-10-15 00:07:39
+LastEditTime: 2021-10-15 09:57:28
 LastEditors: mfuture@qq.com
-Description: 
+Description: 从网络第三方获取免费代理ip
 FilePath: /health39/jbk39/spiders/ipproxy.py
 '''
 import scrapy
@@ -12,13 +12,10 @@ from jbk39.items import Jbk39Item
 class IpproxySpider(scrapy.Spider):
     name = 'ipproxy'
 
-    custom_settings = {
-        "RANDOM_DELAY": 3
-    }
-
     def start_requests(self):
 
-        for i in range(5):     
+        for i in range(20): 
+            print(i)    
             url='http://www.feidudaili.com/index/gratis/index?page={}'.format(i+1)
             yield scrapy.Request(url=url, callback=self.init_parse)
 
@@ -31,8 +28,7 @@ class IpproxySpider(scrapy.Spider):
         for ip_list in ips_list:
 
             ipproxy=ip_list.xpath('./td/text()').extract()
-
-            item['ipproxy']={"ip":ipproxy[0],"port":ipproxy[1]}
+            item['ipproxy']={"ip":ipproxy[0],"port":ipproxy[1],"speed":int(1000*float(ipproxy[4]))}
             item['classify']='ipproxy'
             yield item
 
