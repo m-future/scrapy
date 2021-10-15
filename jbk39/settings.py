@@ -1,7 +1,7 @@
 '''
 Author: mfuture@qq.com
 Date: 2021-04-22 14:35:56
-LastEditTime: 2021-10-15 14:44:36
+LastEditTime: 2021-10-15 18:55:28
 LastEditors: mfuture@qq.com
 Description: 
 FilePath: /health39/jbk39/settings.py
@@ -16,9 +16,8 @@ import datetime
 #     https://docs.scrapy.org/en/latest/topics/settings.html
 #     https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 #     https://docs.scrapy.org/en/latest/topics/spider-middleware.html
-# or from local file: 
+# or from local file:
 # /Library/Python/3.8/site-packages/scrapy/settings/default_settings.py
-
 
 
 BOT_NAME = 'jbk39'
@@ -44,7 +43,10 @@ log_file_path = './jbk39/log/scrapy_{}_{}_{}.log'.format(
 LOG_FILE = log_file_path
 
 # 超时
-DOWNLOAD_TIMEOUT = 5 
+DOWNLOAD_TIMEOUT = 5
+
+# 是否使用 ip 代理
+USE_IP_PROXY = True
 
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
@@ -54,7 +56,7 @@ DOWNLOAD_TIMEOUT = 5
 # Configure a delay for requests for the same website (default: 0)
 # See https://docs.scrapy.org/en/latest/topics/settings.html#download-delay
 # See also autothrottle settings and docs
-DOWNLOAD_DELAY = 2 
+DOWNLOAD_DELAY = 2
 # The download delay setting will honor only one of:
 #CONCURRENT_REQUESTS_PER_DOMAIN = 16
 
@@ -66,10 +68,10 @@ DOWNLOAD_DELAY = 2
 也就是说 网站会每隔 DOWNLOAD_DELAY 时间收到 爬虫产生的 并发。
 '''
 
-# CONCURRENT_REQUESTS_PER_IP = 16
+CONCURRENT_REQUESTS_PER_IP = 16
 
 # 重试次数，默认为 2 次，即对一地址会请求 initial + retry = 3 次
-RETRY_TIMES=2
+RETRY_TIMES = 2
 
 # Disable cookies (enabled by default)
 #COOKIES_ENABLED = False

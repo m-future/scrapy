@@ -1,7 +1,7 @@
 '''
 Author: mfuture@qq.com
 Date: 2021-04-27 11:38:22
-LastEditTime: 2021-10-15 14:59:50
+LastEditTime: 2021-10-15 21:14:47
 LastEditors: mfuture@qq.com
 Description: 特定科室下疾病内容的爬取
 FilePath: /health39/jbk39/spiders/disease.py
@@ -34,7 +34,7 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
 
         print('--start request')
 
-        departments = db.select_department(['fuke'])
+        departments = db.select_department(['neike'])
 
         base_url = "https://jbk.39.net/bw/"
 
@@ -80,7 +80,7 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
        
             link = item.xpath('a/@href').extract()[0]
 
-            # # 诊断，初始添加，先运行这里
+            # # NOTE: 诊断，初始添加，先运行这里
             # yield scrapy.Request(url=link + 'jb' , meta=response.meta, callback=self.diagnosis_parse, errback=self.handleError)
            
             # 简介

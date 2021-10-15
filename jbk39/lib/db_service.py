@@ -1,7 +1,7 @@
 '''
 Author: mfuture@qq.com
 Date: 2021-10-12 14:33:50
-LastEditTime: 2021-10-15 10:03:46
+LastEditTime: 2021-10-15 21:08:25
 LastEditors: mfuture@qq.com
 Description:  执行数据库操作
 FilePath: /health39/jbk39/lib/db_service.py
@@ -103,18 +103,26 @@ class database():
             return data
 
     # 随机选取一个代理 ip
-    def random_proxy(proxy):
+    def random_proxy(oldProxy=None):
         with UsingMysql(log_time=True) as um:
-            if proxy:  # 弃用旧ip，启用新ip
-                ip = proxy.split('/')[2].split(':')[0]
+            if oldProxy:  # 弃用旧ip，启用新ip
+                ip = oldProxy.split('/')[2].split(':')[0]
                 um.cursor.execute(
                     "update ip_proxy set available = 0, failed_times=failed_times+1 where ip= '%s'" % (ip))
 
             um.cursor.execute(
                 "select ip, port from ip_proxy where available=1 order by rand()")
-            return um.cursor.fetchone()
+            ipproxy = um.cursor.fetchone()
+
+            if ipproxy:
+                newProxy = "http://{}:{}".format(
+                    ipproxy['ip'], ipproxy['port'])
+                return newProxy
+            else:
+                raise ValueError('no more proxy in the ip pool!')
 
     # 创建代理ip
+
     def create_ipproxy(item):
         with UsingMysql(log_time=True) as um:
             item = item["ipproxy"]
