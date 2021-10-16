@@ -1,7 +1,7 @@
 '''
 Author: mfuture@qq.com
 Date: 2021-04-27 11:38:22
-LastEditTime: 2021-10-16 12:05:06
+LastEditTime: 2021-10-16 12:29:46
 LastEditors: mfuture@qq.com
 Description: 特定科室下疾病内容的爬取
 FilePath: /health39/jbk39/spiders/disease.py
@@ -111,7 +111,7 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
         alias = txt[1].strip() if len(txt) > 1 else ''
 
         item['intro'] = StrFunc().cleanStr(intro)
-        item['alias'] = alias
+        item['alias'] = StrFunc().cleanStr(alias)
         item['classify'] = 'intro'
         item['name'] = name
         yield item
