@@ -1,10 +1,10 @@
 '''
 Author: mfuture@qq.com
 Date: 2021-10-12 14:33:50
-LastEditTime: 2021-10-15 21:08:25
+LastEditTime: 2021-10-16 10:59:41
 LastEditors: mfuture@qq.com
 Description:  执行数据库操作
-FilePath: /health39/jbk39/lib/db_service.py
+FilePath: /health39/jbk39/lib/service.py
 '''
 #! /usr/bin/python
 # -*- coding: UTF-8 -*-
@@ -17,7 +17,7 @@ import json
 # with UsingMysql(log_time=True) as um:
 
 
-class database():
+class DatabaseService():
 
     # 创建疾病数据库
     def create_diagnosis(table, item):
@@ -85,25 +85,39 @@ class database():
             print("科室-【%s】创建成功" % (item['chinese_name']))
 
     # 选择科室
-    def select_department(department=None):
+    def select_department(departments='ALL'):
         with UsingMysql(log_time=True) as um:
-            if not department:  # 全部科室
-                um.cursor.execute(
-                    "select pinyin, chinese_name from department")
-            else:
-                # 格式化字符串，使其符合 mysql 语法
-                department = map(lambda x: "'{}'".format(x), department)
-                department = ",".join(department)
-                sql = "select pinyin, chinese_name from department where pinyin in (%s) " % (
-                    department)
+            if departments == 'ALL':  # 全部科室
+                # NOTE: 如果有下级科室，则选择下级科室，比如不选fuchanke, 而是选择fuke,chanke
+                sql = 'select pinyin, chinese_name from department where pinyin not in \
+                ( select t.parent from (select parent from department ) as t \
+                where t.parent is not null )'
                 um.cursor.execute(sql)
-
-            data = um.cursor.fetchall()
-
-            return data
+                data = um.cursor.fetchall()
+                return data
+            else: # 部分科室
+                # # 格式化字符串，使其符合 mysql 语法
+                # department = map(lambda x: "'{}'".format(x), department)
+                # department = ",".join(department)
+                # sql = "select pinyin, chinese_name from department where parent in (%s) " % (
+                #     department)
+                # um.cursor.execute(sql)
+                # FIXME: 这里只适用于两级部门，多级部门另外逻辑
+                result=[]
+                for department in departments:
+                    # 先查找其下级部门
+                    sql="select pinyin, chinese_name from department where parent = '%s' " % ( department)
+                    um.cursor.execute(sql)
+                    data=um.cursor.fetchall()
+                    if len(data) == 0: # 没有下级部门，则选择自己
+                        sql = "select pinyin, chinese_name from department where pinyin = '%s' " % ( department) 
+                        um.cursor.execute(sql)
+                        data=um.cursor.fetchall()
+                    result.extend(data)
+                return result
 
     # 随机选取一个代理 ip
-    def random_proxy(oldProxy=None):
+    def select_random_proxy(oldProxy=None):
         with UsingMysql(log_time=True) as um:
             if oldProxy:  # 弃用旧ip，启用新ip
                 ip = oldProxy.split('/')[2].split(':')[0]
@@ -122,7 +136,6 @@ class database():
                 raise ValueError('no more proxy in the ip pool!')
 
     # 创建代理ip
-
     def create_ipproxy(item):
         with UsingMysql(log_time=True) as um:
             item = item["ipproxy"]

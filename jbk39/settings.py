@@ -1,7 +1,7 @@
 '''
 Author: mfuture@qq.com
 Date: 2021-04-22 14:35:56
-LastEditTime: 2021-10-15 18:55:28
+LastEditTime: 2021-10-16 09:39:50
 LastEditors: mfuture@qq.com
 Description: 
 FilePath: /health39/jbk39/settings.py
@@ -57,8 +57,11 @@ USE_IP_PROXY = True
 # See https://docs.scrapy.org/en/latest/topics/settings.html#download-delay
 # See also autothrottle settings and docs
 DOWNLOAD_DELAY = 2
+
+# 随机化delay= (0.5~1.5) * DOWNLOAD_DELAY
+RANDOMIZE_DOWNLOAD_DELAY = True
 # The download delay setting will honor only one of:
-#CONCURRENT_REQUESTS_PER_DOMAIN = 16
+# CONCURRENT_REQUESTS_PER_DOMAIN = 16
 
 '''
 对单个IP进行并发请求的最大值。如果非0，则忽略 CONCURRENT_REQUESTS_PER_DOMAIN 设定，

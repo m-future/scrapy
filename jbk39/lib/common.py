@@ -10,7 +10,7 @@ FilePath: /health39/jbk39/lib/common.py
 import re
 import time
 
-class strFunc():
+class StrFunc():
     # 清除中英混合的空格
     def clean_space(self,text):
         match_regex = re.compile(u'[\u4e00-\u9fa5。\.,，:：《》、\(\)（）]{1} +(?<![a-zA-Z])|\d+ +| +\d+|[a-z A-Z]+')

@@ -1,7 +1,7 @@
 '''
 Author: mfuture@qq.com
 Date: 2021-04-22 14:28:08
-LastEditTime: 2021-10-14 23:41:38
+LastEditTime: 2021-10-15 22:41:48
 LastEditors: mfuture@qq.com
 Description:
 FilePath: /health39/jbk39/pipelines.py
@@ -15,7 +15,7 @@ FilePath: /health39/jbk39/pipelines.py
 # useful for handling different item types with a single interface
 from itemadapter import ItemAdapter
 import json
-from jbk39.lib.db_service import database as db
+from jbk39.lib.service import DatabaseService as db
 
 
 class Jbk39Pipeline(object):
@@ -27,14 +27,22 @@ class Jbk39Pipeline(object):
 
     def process_item(self, item, spider):
 
-            # # 创建科室数据库，仅在 department 爬虫开启时使用
-            # db.create_department(item)
-
             try:
                 self.f.write(json.dumps(dict(item), ensure_ascii=False))
                 self.f.write('\n')
             except Exception as e:
                 print(e)
+
+            # # TODO: 是否能写成类似下面的方式，再结合 filter
+            # handle_items={
+            #     "diagnosis": db.create_diagnosis("disease",item),
+            #     "treat": db.update_treat("disease",item),
+            #     "intro": db.update_intro("disease",item),
+            #     "symptom": db.update_symptom("disease",item),
+            #     "cause": db.update_cause("disease",item),
+            #     "ipproxy": db.create_ipproxy(item),
+            #     "department": db.create_department(item),
+            # }  
 
             # 写入数据库保存
             if item['classify']=='diagnosis':
@@ -48,7 +56,9 @@ class Jbk39Pipeline(object):
             elif item['classify'] == 'cause':
                     db.update_cause("disease",item) 
             elif item['classify'] == 'ipproxy':
-                    db.create_ipproxy(item)              
+                    db.create_ipproxy(item)  
+            elif item['classify'] == 'department':
+                    db.create_department(item)             
             return item
 
     def close_spider(self,spider):

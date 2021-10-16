@@ -1,7 +1,7 @@
 '''
 Author: mfuture@qq.com
 Date: 2021-04-21 16:41:24
-LastEditTime: 2021-10-15 20:20:56
+LastEditTime: 2021-10-16 11:41:23
 LastEditors: mfuture@qq.com
 Description: scrapy middleware
 FilePath: /health39/jbk39/middlewares.py
@@ -22,7 +22,7 @@ from scrapy.core.downloader.handlers.http11 import TunnelError
 from scrapy import signals
 
 # scrapy 内部获取settings变量的类
-from scrapy.settings import BaseSettings as BS
+from scrapy.settings import BaseSettings
 
 # useful for handling different item types with a single interface
 from itemadapter import is_item, ItemAdapter
@@ -33,7 +33,7 @@ from scrapy.spiders import Spider
 import time
 
 
-from jbk39.lib.db_service import database as db
+from jbk39.lib.service import DatabaseService as db
 
 
 class Jbk39SpiderMiddleware:
@@ -140,10 +140,8 @@ class RandomUserAgent(UserAgentMiddleware):    # 如何运行此中间件? setti
         request.headers.setdefault("User-Agent", ua)
 
 
-'''
-处理异常中间件，order=50 ，作为兜底的中间件
-'''
 
+# 处理异常中间件，order=50 ，作为兜底的中间件
 
 class ProcessAllExceptionMiddleware(object):
 
@@ -154,17 +152,20 @@ class ProcessAllExceptionMiddleware(object):
 
     def __init__(self):
         # NOTE: 这里决定是否开启代理
-        # self.useProxy = BS().get('DOWNLOAD_TIMEOUT')
+        self.useProxy = BaseSettings().get('DOWNLOAD_TIMEOUT')
+
+        print(self.useProxy)
+
         self.useProxy = True
 
         # 是否刚刚变更了代理，避免连续变更
         self.proxy_just_changed = False
 
-        # 上次变更时间 
+        # 上次变更时间
         self.proxy_last_change_time = time.time()
 
         if self.useProxy:
-            self.proxy = db.random_proxy()
+            self.proxy = db.select_random_proxy()
 
     @classmethod
     def from_crawler(cls, crawler):
@@ -190,11 +191,14 @@ class ProcessAllExceptionMiddleware(object):
 
         if int(response.status) != 200 or bodyLen < 500:
             spider.logger.warning(
-                "[BAD RESPONSE], statusCode: {}".format(response.status))
-            spider.logger.warning(
-                "[BAD RESPONSE], response: {}".format(response.body.decode()))
-
-            self.proxy=self.change_proxy(spider)
+                "[BAD RESPONSE], url: {}".format(request.url))
+            if int(response.status) != 200:
+                spider.logger.warning(
+                    "[BAD RESPONSE], statusCode: {}".format(response.status))
+            if bodyLen < 500:
+                spider.logger.warning(
+                    "[BAD RESPONSE], response: {}".format(response.body.decode()))
+            self.proxy = self.change_proxy(spider)
 
             new_request = request.copy()
             new_request.dont_filter = True
@@ -208,7 +212,7 @@ class ProcessAllExceptionMiddleware(object):
         # 捕获几乎所有的异常
         if isinstance(exception, self.ALL_EXCEPTIONS):
             spider.logger.warning("[Got exception]   {}".format(exception))
-            self.proxy=self.change_proxy(spider)
+            self.proxy = self.change_proxy(spider, request)
             # 继续请求
             new_request = request.copy()
             new_request.dont_filter = True
@@ -224,20 +228,25 @@ class ProcessAllExceptionMiddleware(object):
         spider.logger.info('Spider opened: %s' % spider.name)
 
     # 更换代理 ip
-    def change_proxy(self, spider):
+    def change_proxy(self, spider, request):
 
         if not self.useProxy:
-            return  
+            return
 
-        oldProxy = self.proxy
+        currentProxy = self.proxy  # 更换以后的代理
+        requestProxy = request.meta['proxy']  # 这个异常request的代理， 有可能使用的是更换之前的代理
+        
         if (not self.proxy_just_changed) or time.time() - self.proxy_last_change_time > 5:
             self.proxy_just_changed = True
             self.proxy_last_change_time = time.time()
-            newProxy = db.random_proxy(oldProxy)         
-            spider.logger.info("[更换代理重试]   {} => {}".format(oldProxy, newProxy))
-            print('更换代理： {} => {}'.format(oldProxy, newProxy))
-            return newProxy
-            
-        time.sleep(1)        
-        return oldProxy
-            
+
+            # 如果不等于，说明该request 使用的是之前的代理，所以不需要更换，只需要用当前的代理重新请求一次就可以
+            if requestProxy == currentProxy:
+                newProxy = db.select_random_proxy(currentProxy)
+                spider.logger.info(
+                    "[更换代理重试]   {} => {}".format(currentProxy, newProxy))
+                print('更换代理： {} => {}'.format(currentProxy, newProxy))
+                return newProxy
+                
+        time.sleep(1)
+        return currentProxy

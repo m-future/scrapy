@@ -1,7 +1,7 @@
 '''
 Author: mfuture@qq.com
 Date: 2021-10-13 22:46:09
-LastEditTime: 2021-10-14 19:57:44
+LastEditTime: 2021-10-16 09:00:42
 LastEditors: mfuture@qq.com
 Description: 预先爬取各科室并存储，语句解释可参考 disease 爬虫
 FilePath: /health39/jbk39/spiders/department.py
@@ -40,7 +40,7 @@ class SectionSpider(scrapy.Spider):
 
         item=Jbk39Item()
 
-        parent=response.xpath('//div[contains(@class,"lookup_department")]//li[@class="active"]/a') #中文名
+        parent=response.xpath('//div[contains(@class,"lookup_department")]//li[@class="active"]/a') # 父部门 
 
         pinyin_parent=parent.xpath('./@href').extract()[0].split("/")[2] # 拼音
 
@@ -50,12 +50,13 @@ class SectionSpider(scrapy.Spider):
 
         yield item
 
-        children= response.xpath('//ul[contains(@class,"type_subscreen_unit")]/li/a')
+        children= response.xpath('//ul[contains(@class,"type_subscreen_unit")]/li/a') # 子部门
 
         for child in  children:
             pinyin_child=child.xpath('./@href').extract()[0].split("/")[2] # 拼音
             chinese_name=child.xpath('./text()').extract()[0] # 中文名
             item["department"]={"pinyin": pinyin_child, "chinese_name":chinese_name, "parent": pinyin_parent}
+            item["classify"]='department'
             yield item
 
         
