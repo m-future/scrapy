@@ -1,8 +1,6 @@
 '''
 Author: mfuture@qq.com
 Date: 2021-04-27 11:38:22
-LastEditTime: 2021-10-16 19:19:06
-LastEditors: mfuture@qq.com
 Description: 特定科室下疾病内容的爬取
 FilePath: /health39/jbk39/spiders/disease.py
 '''
@@ -27,7 +25,8 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
     name = "disease"  # 定义蜘蛛名
 
     custom_settings = {
-        "DOWNLOAD_DELAY": 0.05  # 覆盖settings 里面的载延迟 ， 利用代理时本身就有较大的延迟，所以此处可以设置小一点，不用担心被封
+        "DOWNLOAD_DELAY": 0.05,  # 覆盖settings 里面的载延迟 ， 利用代理时本身就有较大的延迟，所以此处可以设置小一点，不用担心被封
+        "JOBDIR": './jobs/{}'.format(name)
     }
 
     # step1: 开始请求
@@ -35,7 +34,7 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
 
         print('--start request--')
 
-        departments = db.select_department() 
+        departments = db.select_department()
 
         base_url = "https://jbk.39.net/bw/"
 

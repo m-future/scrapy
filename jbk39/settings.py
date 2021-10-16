@@ -1,8 +1,6 @@
 '''
 Author: mfuture@qq.com
 Date: 2021-04-22 14:35:56
-LastEditTime: 2021-10-16 19:03:11
-LastEditors: mfuture@qq.com
 Description: 
 FilePath: /health39/jbk39/settings.py
 '''
@@ -43,10 +41,14 @@ log_file_path = './jbk39/log/scrapy_{}_{}_{}.log'.format(
 LOG_FILE = log_file_path
 
 # 超时
-DOWNLOAD_TIMEOUT = 10
+DOWNLOAD_TIMEOUT = 5
 
 # 是否使用 ip 代理
 USE_IP_PROXY = True
+
+# 保存爬虫中断（ctrl+z）时的数据，以便恢复-fg, 查看进程-jobs
+# 最好在每个爬虫那里自己设置
+JOBDIR='./jobs/'
 
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)

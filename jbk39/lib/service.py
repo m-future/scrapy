@@ -1,8 +1,6 @@
 '''
 Author: mfuture@qq.com
 Date: 2021-10-12 14:33:50
-LastEditTime: 2021-10-16 19:38:22
-LastEditors: mfuture@qq.com
 Description:  执行数据库操作
 FilePath: /health39/jbk39/lib/service.py
 '''
@@ -10,11 +8,9 @@ FilePath: /health39/jbk39/lib/service.py
 # -*- coding: UTF-8 -*-
 
 
-from .config.pymysql import UsingMysql
+from .config.mysql import UsingMysql
 import random
 import json
-
-# with UsingMysql(log_time=True) as um:
 
 
 class DatabaseService():
@@ -128,7 +124,8 @@ class DatabaseService():
 
             # TODO: 选择代理的方式有待改进
             # 这里要注意不要用代理网站的ip去爬代理网站！
-            um.cursor.execute("select ip, port from ip_proxy where available=1 and id < 700 order by rand()")
+            um.cursor.execute(
+                "select ip, port from ip_proxy where available=1")
             # um.cursor.execute(
             #     "select ip, port from ip_proxy where available=1 order by id")
 
@@ -149,3 +146,18 @@ class DatabaseService():
                 item['ip'], item['port'], item['speed'], item['speed'])
             um.cursor.execute(sql)
             print("ipproxy-【%s】创建成功" % (item['ip']))
+
+    # 获取所有代理地址
+    def select_proxy():
+        with UsingMysql(log_time=True) as um:
+            um.cursor.execute('select ip, port from ip_proxy')
+            return um.cursor.fetchall()
+
+    # 更新代理地址的可用性
+    def update_proxy(proxy, available):
+        with UsingMysql(log_time=True) as um:
+            um.cursor.execute(
+                " update ip_proxy set available = %d where ip = '%s' " % (available, proxy['ip']))
+            print(
+                'ipproxy -  {}:{} 可用性更新成功：{}'.format(proxy['ip'], proxy['port'], available))
+            return um.cursor.fetchall()

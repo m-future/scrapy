@@ -1,8 +1,8 @@
 <!--
  * @Author: mfuture@qq.com
  * @Date: 2021-10-12 13:08:44
- * @LastEditTime: 2021-10-16 12:37:19
- * @LastEditors: mfuture@qq.com
+ * @LastEditTime: 2021-10-16 21:55:16
+ * @LastEditors: Please set LastEditors
  * @Description: 
  * @FilePath: /health39/README.md
 -->
@@ -17,3 +17,6 @@
 - department: 获取[39健康网](https://jbk.39.net/)上的科室，便于后面爬疾病时使用
 - disease: 获取39健康网上的疾病及其相关信息
 - ipproxy: 获取第三方[供应商](http://www.feidudaili.com/index/gratis/index)的代理ip, 在middlewares 里面设置开启代理
+
+#### 3. 使用
+- python3 jbk39/lib/network.py 可以更新代理IP的可用性

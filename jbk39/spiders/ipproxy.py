@@ -1,8 +1,6 @@
 '''
 Author: mfuture@qq.com
 Date: 2021-10-14 19:41:40
-LastEditTime: 2021-10-16 19:17:29
-LastEditors: mfuture@qq.com
 Description: 从网络第三方获取免费代理ip
 FilePath: /health39/jbk39/spiders/ipproxy.py
 '''
@@ -14,8 +12,8 @@ class IpproxySpider(scrapy.Spider):
 
     custom_settings = {
         "DOWNLOAD_DELAY": 0.2,
-        "CONCURRENT_REQUESTS_PER_IP" : 1
-
+        "CONCURRENT_REQUESTS_PER_IP" : 1,
+        "JOBDIR": './jobs/{}'.format(name)
     }
 
     def start_requests(self):

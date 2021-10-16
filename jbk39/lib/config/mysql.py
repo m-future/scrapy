@@ -1,8 +1,6 @@
 '''
 Author: mfuture@qq.com
 Date: 2021-10-12 14:26:07
-LastEditTime: 2021-10-12 17:15:54
-LastEditors: mfuture@qq.com
 Description: 设置连接mysql数据库
 FilePath: /jbk39/jbk39/lib/config/pymysql.py
 '''
