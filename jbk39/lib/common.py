@@ -1,7 +1,7 @@
 '''
 Author: mfuture@qq.com
 Date: 2021-10-13 17:03:51
-LastEditTime: 2021-10-14 17:36:52
+LastEditTime: 2021-10-16 18:21:47
 LastEditors: mfuture@qq.com
 Description: 常用处理函数
 FilePath: /health39/jbk39/lib/common.py
@@ -23,7 +23,8 @@ class StrFunc():
             text = text.replace(i,new_i)
         return text
 
-    def cleanStr(self,string):
+    # 格式化字符串，避免后续json处理或存储出现问题
+    def str_format(self,string):
         # FIXME: 字符串中还有表示小于号 < 的&lt;和 表示大于号 > 的&gt; 等 html标签，是否替换有待商榷
         #  表格中含有 \xa0 空格， \t tab制表符， \r \n 换行符，\u3000 中文全角空白符号
         string =re.sub(r'<[^>]+>', u'',string) # 替换标签,避免段落中有 <a> 标签
@@ -31,3 +32,4 @@ class StrFunc():
         string=string.replace(u'\u3000', u'').replace(u'\n', u'').replace(u'\r', u'').replace(u'\t', u'').replace(u'\xa0',u'')
         string=self.clean_space(string) # 去除多余的空格
         return string
+

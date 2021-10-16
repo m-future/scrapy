@@ -1,7 +1,7 @@
 '''
 Author: mfuture@qq.com
 Date: 2021-04-22 14:35:56
-LastEditTime: 2021-10-16 09:39:50
+LastEditTime: 2021-10-16 19:03:11
 LastEditors: mfuture@qq.com
 Description: 
 FilePath: /health39/jbk39/settings.py
@@ -43,7 +43,7 @@ log_file_path = './jbk39/log/scrapy_{}_{}_{}.log'.format(
 LOG_FILE = log_file_path
 
 # 超时
-DOWNLOAD_TIMEOUT = 5
+DOWNLOAD_TIMEOUT = 10
 
 # 是否使用 ip 代理
 USE_IP_PROXY = True

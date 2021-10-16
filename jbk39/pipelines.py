@@ -1,7 +1,7 @@
 '''
 Author: mfuture@qq.com
 Date: 2021-04-22 14:28:08
-LastEditTime: 2021-10-15 22:41:48
+LastEditTime: 2021-10-16 13:06:50
 LastEditors: mfuture@qq.com
 Description:
 FilePath: /health39/jbk39/pipelines.py
@@ -22,16 +22,17 @@ class Jbk39Pipeline(object):
 
     def open_spider(self, spider):
             print('open_spider')
-            # 将数据写入文件，以便查看其特征
-            self.f = open('data/scrapyItem.json', 'w', encoding='utf-8')
+            
+            # # 将数据写入文件，以便查看其特征
+            # self.f = open('data/scrapyItem.json', 'w', encoding='utf-8')
 
     def process_item(self, item, spider):
-
-            try:
-                self.f.write(json.dumps(dict(item), ensure_ascii=False))
-                self.f.write('\n')
-            except Exception as e:
-                print(e)
+            # # 写入文件，便于观察
+            # try:
+            #     self.f.write(json.dumps(dict(item), ensure_ascii=False))
+            #     self.f.write('\n')
+            # except Exception as e:
+            #     print(e)
 
             # # TODO: 是否能写成类似下面的方式，再结合 filter
             # handle_items={

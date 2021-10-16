@@ -1,7 +1,7 @@
 '''
 Author: mfuture@qq.com
 Date: 2021-10-12 14:33:50
-LastEditTime: 2021-10-16 10:59:41
+LastEditTime: 2021-10-16 19:38:22
 LastEditors: mfuture@qq.com
 Description:  执行数据库操作
 FilePath: /health39/jbk39/lib/service.py
@@ -95,7 +95,7 @@ class DatabaseService():
                 um.cursor.execute(sql)
                 data = um.cursor.fetchall()
                 return data
-            else: # 部分科室
+            else:  # 部分科室
                 # # 格式化字符串，使其符合 mysql 语法
                 # department = map(lambda x: "'{}'".format(x), department)
                 # department = ",".join(department)
@@ -103,16 +103,18 @@ class DatabaseService():
                 #     department)
                 # um.cursor.execute(sql)
                 # FIXME: 这里只适用于两级部门，多级部门另外逻辑
-                result=[]
+                result = []
                 for department in departments:
                     # 先查找其下级部门
-                    sql="select pinyin, chinese_name from department where parent = '%s' " % ( department)
+                    sql = "select pinyin, chinese_name from department where parent = '%s' " % (
+                        department)
                     um.cursor.execute(sql)
-                    data=um.cursor.fetchall()
-                    if len(data) == 0: # 没有下级部门，则选择自己
-                        sql = "select pinyin, chinese_name from department where pinyin = '%s' " % ( department) 
+                    data = um.cursor.fetchall()
+                    if len(data) == 0:  # 没有下级部门，则选择自己
+                        sql = "select pinyin, chinese_name from department where pinyin = '%s' " % (
+                            department)
                         um.cursor.execute(sql)
-                        data=um.cursor.fetchall()
+                        data = um.cursor.fetchall()
                     result.extend(data)
                 return result
 
@@ -124,8 +126,12 @@ class DatabaseService():
                 um.cursor.execute(
                     "update ip_proxy set available = 0, failed_times=failed_times+1 where ip= '%s'" % (ip))
 
-            um.cursor.execute(
-                "select ip, port from ip_proxy where available=1 order by rand()")
+            # TODO: 选择代理的方式有待改进
+            # 这里要注意不要用代理网站的ip去爬代理网站！
+            um.cursor.execute("select ip, port from ip_proxy where available=1 and id < 700 order by rand()")
+            # um.cursor.execute(
+            #     "select ip, port from ip_proxy where available=1 order by id")
+
             ipproxy = um.cursor.fetchone()
 
             if ipproxy:

@@ -1,7 +1,7 @@
 '''
 Author: mfuture@qq.com
 Date: 2021-04-27 11:38:22
-LastEditTime: 2021-10-16 12:29:46
+LastEditTime: 2021-10-16 19:19:06
 LastEditors: mfuture@qq.com
 Description: 特定科室下疾病内容的爬取
 FilePath: /health39/jbk39/spiders/disease.py
@@ -35,7 +35,7 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
 
         print('--start request--')
 
-        departments = db.select_department(['neike']) 
+        departments = db.select_department() 
 
         base_url = "https://jbk.39.net/bw/"
 
@@ -62,7 +62,8 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
         if len(pages) > 0:
             pages = int(pages.extract()[0])
         else:
-            raise ValueError("no page  count found.")
+            pages = 1
+            # raise ValueError("no page  count found.")
 
         for i in range(pages):
             # step2.2: 请求某一分页
@@ -110,8 +111,8 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
 
         alias = txt[1].strip() if len(txt) > 1 else ''
 
-        item['intro'] = StrFunc().cleanStr(intro)
-        item['alias'] = StrFunc().cleanStr(alias)
+        item['intro'] = StrFunc().str_format(intro)
+        item['alias'] = StrFunc().str_format(alias)
         item['classify'] = 'intro'
         item['name'] = name
         yield item
@@ -130,7 +131,7 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
             '//p[@class="article_name"] | //p[@class="article_content_text"]').extract()
 
         for text in text_lists:
-            mystr = StrFunc().cleanStr(text)
+            mystr = StrFunc().str_format(text)
             if mystr.find('中医治疗') >= 0:
                 flag = 2
 
@@ -161,7 +162,7 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
             '//div[@class="article_box"]//p').extract()
 
         for text in text_lists_symptom:
-            mystr = StrFunc().cleanStr(text)
+            mystr = StrFunc().str_format(text)
             symptom.append(mystr)
 
         item["symptom"] = symptom
@@ -185,7 +186,7 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
             '//div[@class="article_box"]//p').extract()
 
         for text in text_lists_cause:
-            mystr = StrFunc().cleanStr(text)
+            mystr = StrFunc().str_format(text)
             cause.append(mystr)
 
         item["cause"] = cause
@@ -210,11 +211,11 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
             '//div[@class="article_paragraph"]/p ').extract()
 
         for text in text_lists_diagnosis:
-            mystr = StrFunc().cleanStr(text)
+            mystr = StrFunc().str_format(text)
             diagnosis.append(mystr)
 
         for text in text_lists_identify:
-            mystr = StrFunc().cleanStr(text)
+            mystr = StrFunc().str_format(text)
             identify.append(mystr)
 
         item["diagnosis"] = diagnosis
