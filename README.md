@@ -20,7 +20,11 @@
 - disease: 获取39健康网上的疾病及其相关信息
 - ipproxy: 获取第三方[供应商](http://www.feidudaili.com/index/gratis/index)的代理ip, 在middlewares 里面设置开启代理
 
-## 3. 命令行使用
+## 3. 设置
+
+- 在settings.py设置 USE_IP_PROXY 来决定是否使用代理
+
+## 4. 命令行使用
 
 - python3 jbk39/lib/network.py 可以更新代理IP的可用性
 - ```ctrl+z``` 暂停爬虫
@@ -28,3 +32,4 @@
 - bg 后台运行
 - fg 恢复运行
 - kill %num 杀死进程
+- 删除jobs里面的对应文件夹，才能重新运行一个爬虫，否则视为任务已完成
