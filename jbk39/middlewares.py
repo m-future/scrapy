@@ -1,8 +1,8 @@
 '''
 Author: mfuture@qq.com
 Date: 2021-04-21 16:41:24
-LastEditTime: 2021-10-16 11:41:23
-LastEditors: mfuture@qq.com
+LastEditTime: 2021-10-17 00:13:53
+LastEditors: Please set LastEditors
 Description: scrapy middleware
 FilePath: /health39/jbk39/middlewares.py
 '''
@@ -241,12 +241,12 @@ class ProcessAllExceptionMiddleware(object):
             self.proxy_last_change_time = time.time()
 
             # 如果不等于，说明该request 使用的是之前的代理，所以不需要更换，只需要用当前的代理重新请求一次就可以
-            if requestProxy == currentProxy:
-                newProxy = db.select_random_proxy(currentProxy)
-                spider.logger.info(
-                    "[更换代理重试]   {} => {}".format(currentProxy, newProxy))
-                print('更换代理： {} => {}'.format(currentProxy, newProxy))
-                return newProxy
+            # if requestProxy == currentProxy:
+            newProxy = db.select_random_proxy(currentProxy)
+            spider.logger.info(
+                "[更换代理重试]   {} => {}".format(currentProxy, newProxy))
+            print('更换代理： {} => {}'.format(currentProxy, newProxy))
+            return newProxy
                 
         time.sleep(1)
         return currentProxy
