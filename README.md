@@ -1,13 +1,14 @@
 <!--
  * @Author: mfuture@qq.com
  * @Date: 2021-10-12 13:08:44
- * @LastEditTime: 2021-10-16 21:55:16
+ * @LastEditTime: 2021-10-17 11:36:54
  * @LastEditors: Please set LastEditors
  * @Description: 
  * @FilePath: /health39/README.md
 -->
 
-#### 1. 本项目使用 [scrapy](https://docs.scrapy.org/en/latest/index.html) 爬虫框架
+#### 1. 框架 
+- [scrapy](https://docs.scrapy.org/en/latest/index.html) 
 - scrapy list # 查看项目中的爬虫列表
 - scrapy genspider spidername # 新建一个爬虫
 - scrapy crawl spidername # 运行某个爬虫
@@ -18,5 +19,10 @@
 - disease: 获取39健康网上的疾病及其相关信息
 - ipproxy: 获取第三方[供应商](http://www.feidudaili.com/index/gratis/index)的代理ip, 在middlewares 里面设置开启代理
 
-#### 3. 使用
+#### 3. 命令行使用
 - python3 jbk39/lib/network.py 可以更新代理IP的可用性
+- ```ctrl+z``` 暂停爬虫
+- jobs 查看当前任务
+- bg 后台运行
+- fg 恢复运行
+- kill %num 杀死进程
