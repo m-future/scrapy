@@ -30,12 +30,11 @@ from scrapy.spiders import Spider
 
 
 import time
-import scrapy
+import json
+import random
 
 
 from jbk39.lib.service import DatabaseService as db
-
-
 
 
 class Jbk39SpiderMiddleware:
@@ -134,10 +133,13 @@ class Jbk39DownloaderMiddleware:
 
 
 class RandomUserAgent(UserAgentMiddleware):    # 如何运行此中间件? settings 直接添加就OK
+
+    def __init__(self,spider):
+        with open('jbk39/lib/config/fake_useragent.json','r') as f:
+            self.agent = json.load(f)['browsers']['chrome']
+
     def process_request(self, request, spider):
-        # ua = random.choice(user_agent_list)
-        # 关于可能出现的错误请参考这篇文档 https://blog.csdn.net/yilovexing/article/details/89044980
-        ua = UserAgent().random
+        ua = random.choice(self.agent)
         # 在请求头里设置ua
         request.headers.setdefault("User-Agent", ua)
 
@@ -151,7 +153,7 @@ class ProcessAllExceptionMiddleware(object):
                       ConnectionLost, TCPTimedOutError, ResponseFailed,
                       IOError, TunnelError)
 
-    def __init__(self,spider):
+    def __init__(self, spider):
         # 这里决定是否开启代理
         self.useProxy = spider.settings.get("USE_IP_PROXY")
 
@@ -193,7 +195,7 @@ class ProcessAllExceptionMiddleware(object):
             if bodyLen < 500:
                 spider.logger.info(
                     "[BAD RESPONSE], response: {}".format(response.body.decode()))
-            self.proxy = self.change_proxy(spider,request)
+            self.proxy = self.change_proxy(spider, request)
 
             new_request = request.copy()
             new_request.dont_filter = True
