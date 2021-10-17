@@ -11,17 +11,17 @@ class IpproxySpider(scrapy.Spider):
     name = 'ipproxy'
 
     custom_settings = {
-        "DOWNLOAD_DELAY": 0.2,
+        "DOWNLOAD_DELAY": 2,
         "CONCURRENT_REQUESTS_PER_IP" : 1,
+        "USE_IP_PROXY": False, # 至少不要用这个网站的ip
         "JOBDIR": './jobs/{}'.format(name)
     }
 
     def start_requests(self):
 
-        for i in range(1,500): 
-            print(i)    
+        for i in range(1,50): 
             url='http://www.feidudaili.com/index/gratis/index?page={}'.format(i+1) # 飞度代理
-            url = 'https://www.kuaidaili.com/free/inha/{}/'.format(i+1) # 快代理
+            # url = 'https://www.kuaidaili.com/free/inha/{}/'.format(i+1) # 快代理
             yield scrapy.Request(url=url, callback=self.init_parse)
 
     def init_parse(self, response):
@@ -33,8 +33,8 @@ class IpproxySpider(scrapy.Spider):
         for ip_list in ips_list:
 
             ipproxy=ip_list.xpath('./td/text()').extract()
-            # item['ipproxy']={"ip":ipproxy[0],"port":ipproxy[1],"speed":int(1000*float(ipproxy[4]))} # 飞度代理
-            item['ipproxy']={"ip":ipproxy[0],"port":ipproxy[1],"speed":int(1000*float(ipproxy[5].replace(u'秒','')))} # 快代理
+            item['ipproxy']={"ip":ipproxy[0],"port":ipproxy[1],"speed":int(1000*float(ipproxy[4]))} # 飞度代理
+            # item['ipproxy']={"ip":ipproxy[0],"port":ipproxy[1],"speed":int(1000*float(ipproxy[5].replace(u'秒','')))} # 快代理
 
             item['classify']='ipproxy'
             yield item
