@@ -28,10 +28,14 @@ from scrapy.downloadermiddlewares.useragent import UserAgentMiddleware
 from fake_useragent import UserAgent  # 生成随机 useragent
 from scrapy.spiders import Spider
 
+
 import time
+import scrapy
 
 
 from jbk39.lib.service import DatabaseService as db
+
+
 
 
 class Jbk39SpiderMiddleware:
@@ -138,7 +142,6 @@ class RandomUserAgent(UserAgentMiddleware):    # 如何运行此中间件? setti
         request.headers.setdefault("User-Agent", ua)
 
 
-
 # 处理异常中间件，order=50 ，作为兜底的中间件
 
 class ProcessAllExceptionMiddleware(object):
@@ -148,19 +151,12 @@ class ProcessAllExceptionMiddleware(object):
                       ConnectionLost, TCPTimedOutError, ResponseFailed,
                       IOError, TunnelError)
 
-    def __init__(self):
-        # NOTE: 这里决定是否开启代理
-        self.useProxy = BaseSettings().get('DOWNLOAD_TIMEOUT')
+    def __init__(self,spider):
+        # 这里决定是否开启代理
+        self.useProxy = spider.settings.get("USE_IP_PROXY")
 
-        print(self.useProxy)
-
-        self.useProxy = True
-
-        # 是否刚刚变更了代理，避免连续变更
-        self.proxy_just_changed = False
-
-        # 上次变更时间
-        self.proxy_last_change_time = time.time()
+        # 避免连续更换代理
+        self.last_change_proxy_time = time.time()
 
         if self.useProxy:
             self.proxy = db.select_random_proxy()
@@ -168,7 +164,8 @@ class ProcessAllExceptionMiddleware(object):
     @classmethod
     def from_crawler(cls, crawler):
         # This method is used by Scrapy to create your spiders.
-        s = cls()
+        # crawler 就是 spider
+        s = cls(crawler)
         crawler.signals.connect(s.spider_opened, signal=signals.spider_opened)
         return s
 
@@ -191,12 +188,12 @@ class ProcessAllExceptionMiddleware(object):
             spider.logger.warning(
                 "[BAD RESPONSE], url: {}".format(request.url))
             if int(response.status) != 200:
-                spider.logger.warning(
+                spider.logger.info(
                     "[BAD RESPONSE], statusCode: {}".format(response.status))
             if bodyLen < 500:
-                spider.logger.warning(
+                spider.logger.info(
                     "[BAD RESPONSE], response: {}".format(response.body.decode()))
-            self.proxy = self.change_proxy(spider)
+            self.proxy = self.change_proxy(spider,request)
 
             new_request = request.copy()
             new_request.dont_filter = True
@@ -209,7 +206,8 @@ class ProcessAllExceptionMiddleware(object):
         # 没有响应，则跳转到这里
         # 捕获几乎所有的异常
         if isinstance(exception, self.ALL_EXCEPTIONS):
-            spider.logger.warning("[Got exception]   {}".format(exception))
+            spider.logger.warning("[Got exception with proxy: {}]   {}".format(
+                request.meta['proxy'], exception))
             self.proxy = self.change_proxy(spider, request)
             # 继续请求
             new_request = request.copy()
@@ -233,18 +231,14 @@ class ProcessAllExceptionMiddleware(object):
 
         currentProxy = self.proxy  # 更换以后的代理
         requestProxy = request.meta['proxy']  # 这个异常request的代理， 有可能使用的是更换之前的代理
-        
-        if (not self.proxy_just_changed) or time.time() - self.proxy_last_change_time > 5:
-            self.proxy_just_changed = True
-            self.proxy_last_change_time = time.time()
 
+        if requestProxy == currentProxy and time.time()-self.last_change_proxy_time > 2:
             # 如果不等于，说明该request 使用的是之前的代理，所以不需要更换，只需要用当前的代理重新请求一次就可以
-            # if requestProxy == currentProxy:
+            self.last_change_proxy_time = time.time()
             newProxy = db.select_random_proxy(currentProxy)
             spider.logger.info(
                 "[更换代理重试]   {} => {}".format(currentProxy, newProxy))
             print('更换代理： {} => {}'.format(currentProxy, newProxy))
             return newProxy
-                
-        time.sleep(1)
+        time.sleep(0.5)
         return currentProxy
