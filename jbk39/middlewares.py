@@ -1,8 +1,6 @@
 '''
 Author: mfuture@qq.com
 Date: 2021-04-21 16:41:24
-LastEditTime: 2021-10-17 00:13:53
-LastEditors: Please set LastEditors
 Description: scrapy middleware
 FilePath: /health39/jbk39/middlewares.py
 '''

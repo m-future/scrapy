@@ -1,8 +1,6 @@
 '''
 Author: mfuture@qq.com
 Date: 2021-10-14 12:42:00
-LastEditTime: 2021-10-14 23:18:41
-LastEditors: mfuture@qq.com
 Description: scrapy item 容器
 FilePath: /health39/jbk39/items.py
 '''

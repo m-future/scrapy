@@ -1,8 +1,6 @@
 '''
 Author: mfuture@qq.com
 Date: 2021-04-22 14:28:08
-LastEditTime: 2021-10-16 13:06:50
-LastEditors: mfuture@qq.com
 Description:
 FilePath: /health39/jbk39/pipelines.py
 '''
