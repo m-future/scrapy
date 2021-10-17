@@ -19,14 +19,9 @@ from twisted.web.client import ResponseFailed
 from scrapy.core.downloader.handlers.http11 import TunnelError
 from scrapy import signals
 
-# scrapy 内部获取settings变量的类
-from scrapy.settings import BaseSettings
 
 # useful for handling different item types with a single interface
 from itemadapter import is_item, ItemAdapter
-from scrapy.downloadermiddlewares.useragent import UserAgentMiddleware
-from fake_useragent import UserAgent  # 生成随机 useragent
-from scrapy.spiders import Spider
 
 
 import time
@@ -132,11 +127,11 @@ class Jbk39DownloaderMiddleware:
         return None
 
 
-class RandomUserAgent(UserAgentMiddleware):    # 如何运行此中间件? settings 直接添加就OK
+class RandomUserAgent():    # 如何运行此中间件? settings 直接添加就OK
 
-    def __init__(self,spider):
-        with open('jbk39/lib/config/fake_useragent.json','r') as f:
-            self.agent = json.load(f)['browsers']['chrome']
+    
+    with open('jbk39/lib/config/fake_useragent.json','r') as f:
+        agent = json.load(f)['browsers']['chrome']
 
     def process_request(self, request, spider):
         ua = random.choice(self.agent)
