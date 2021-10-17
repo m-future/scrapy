@@ -16,11 +16,11 @@ import json
 from jbk39.lib.service import DatabaseService as db
 
 
+
 class Jbk39Pipeline(object):
 
     def open_spider(self, spider):
-            print('open_spider')
-            
+            print('open_spider')            
             # # 将数据写入文件，以便查看其特征
             # self.f = open('data/scrapyItem.json', 'w', encoding='utf-8')
 

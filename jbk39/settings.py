@@ -43,7 +43,7 @@ LOG_FILE = log_file_path
 # 超时
 DOWNLOAD_TIMEOUT = 5
 
-# 是否使用 ip 代理
+# NOTE:是否使用 ip 代理
 USE_IP_PROXY = True
 
 # 保存爬虫中断（ctrl+z）时的数据，以便恢复-fg, 查看进程-jobs

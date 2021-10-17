@@ -4,11 +4,11 @@ Date: 2021-10-12 14:33:50
 Description:  执行数据库操作
 FilePath: /health39/jbk39/lib/service.py
 '''
-#! /usr/bin/python
+#! /usr/bin/python3
 # -*- coding: UTF-8 -*-
 
 
-from .config.mysql import UsingMysql
+from jbk39.lib.config.mysql import UsingMysql
 import random
 import json
 
@@ -159,5 +159,5 @@ class DatabaseService():
             um.cursor.execute(
                 " update ip_proxy set available = %d where ip = '%s' " % (available, proxy['ip']))
             print(
-                'ipproxy -  {}:{} 可用性更新成功：{}'.format(proxy['ip'], proxy['port'], available))
+                'ipproxy -  telnet {} {} 可用性更新成功：{}'.format(proxy['ip'], proxy['port'], available))
             return um.cursor.fetchall()

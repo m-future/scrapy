@@ -34,6 +34,8 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
 
         print('--start request--')
 
+        return
+
         departments = db.select_department()
 
         base_url = "https://jbk.39.net/bw/"
