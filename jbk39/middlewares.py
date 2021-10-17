@@ -149,7 +149,13 @@ class ProcessAllExceptionMiddleware(object):
                       IOError, TunnelError)
 
     def __init__(self, spider):
-        # 这里决定是否开启代理
+        with open('jbk39/lib/config/fake_useragent.json','r') as f:
+            self.agent = json.load(f)['browsers']['chrome']
+            self.ua = random.choice(self.agent)
+            
+
+
+        # 是否开启代理
         self.useProxy = spider.settings.get("USE_IP_PROXY")
 
         # 避免连续更换代理
@@ -171,6 +177,7 @@ class ProcessAllExceptionMiddleware(object):
 
         if self.useProxy:
             request.meta['proxy'] = self.proxy
+            request.headers.setdefault("User-Agent", self.ua)
         return None
 
     def process_response(self, request, response, spider):
@@ -233,6 +240,7 @@ class ProcessAllExceptionMiddleware(object):
             # 如果不等于，说明该request 使用的是之前的代理，所以不需要更换，只需要用当前的代理重新请求一次就可以
             self.last_change_proxy_time = time.time()
             newProxy = db.select_random_proxy(currentProxy)
+            self.ua = random.choice(self.agent) # 更换 useragent
             spider.logger.info(
                 "[更换代理重试]   {} => {}".format(currentProxy, newProxy))
             print('更换代理： {} => {}'.format(currentProxy, newProxy))
