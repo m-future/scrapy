@@ -22,10 +22,11 @@
 
 ## 3. 设置
 
-- 在settings.py设置 USE_IP_PROXY 来决定是否使用代理
+- 在settings.py设置 USE_IP_PROXY 来决定是否使用代理（默认使用）
 
 ## 4. 命令行使用
 
+- scrapy crawl disease 运行disease这个爬虫
 - python3 jbk39/lib/network.py 可以更新代理IP的可用性
 - ```ctrl+z``` 暂停爬虫
 - jobs 查看当前任务
