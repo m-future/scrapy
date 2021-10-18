@@ -161,3 +161,44 @@ class DatabaseService():
             print(
                 'ipproxy -  telnet {} {} 可用性更新成功：{}'.format(proxy['ip'], proxy['port'], available))
             return um.cursor.fetchall()
+
+    # 创建症状
+    def create_symptom(table, item):
+        with UsingMysql(log_time=True) as um:
+            # item = item["ipproxy"]
+            sql = "insert into %s (`name`,intro,possible_disease) values('%s','%s','%s')" % (
+                table, item['name'], item['intro'], item['possible_disease'])
+            um.cursor.execute(sql)
+            print("symptom-【%s】创建成功" % (item['name']))
+
+    # 更新症状 - 病因
+    def update_symptom_cause(table, item):
+        with UsingMysql(log_time=True) as um:
+            # item = item["ipproxy"]
+            sql = "update %s set cause= '%s' where `name` = '%s' " % (table, item['cause'], item['name'])
+            um.cursor.execute(sql)
+            print("symptom-【%s】病因 更新成功" % (item['name']))
+
+    # 更新症状 - 诊断详述
+    def update_symptom_diagnosis(table, item):
+        with UsingMysql(log_time=True) as um:
+            # item = item["ipproxy"]
+            sql = "update %s set diagnosis= '%s' where `name` = '%s' " % (table, item['diagnosis'], item['name'])
+            um.cursor.execute(sql)
+            print("symptom-【%s】诊断详述 更新成功" % (item['name']))
+
+    # 更新症状 - 检查鉴别
+    def update_symptom_identify(table, item):
+        with UsingMysql(log_time=True) as um:
+            # item = item["ipproxy"]
+            sql = "update %s set identify = '%s' where `name` = '%s' " % (table, item['identify'], item['name'])
+            um.cursor.execute(sql)
+            print("symptom-【%s】检查鉴别 更新成功" % (item['name']))
+
+    # 更新症状 - 就诊指南
+    def update_symptom_treat_guide(table, item):
+        with UsingMysql(log_time=True) as um:
+            # item = item["ipproxy"]
+            sql = "update %s set treat_guide = '%s' where `name` = '%s' " % (table, item['treat_guide'], item['name'])
+            um.cursor.execute(sql)
+            print("symptom-【%s】就诊指南 更新成功" % (item['name']))
