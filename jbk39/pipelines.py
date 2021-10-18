@@ -69,6 +69,8 @@ class Jbk39Pipeline(object):
                     db.update_symptom_identify('symptom',item)
             elif item['classify'] == 'symptom:treat_guide':
                     db.update_symptom_treat_guide('symptom',item)            
+            elif item['classify'] == 'identify':
+                    db.create_identify('identify',item)
             return item
 
     def close_spider(self,spider):

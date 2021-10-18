@@ -36,20 +36,18 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
 
         print('--start request--')
 
-
         departments = db.select_department(['fuke'])
 
         base_url = "https://jbk.39.net/bw/"
 
         for department in departments:
-
             # 症状链接
             pinyin = department["pinyin"]
             url = '{}{}_t2/'.format(base_url, department["pinyin"])
             meta = {"base_url": base_url, "pinyin": pinyin}
             yield scrapy.Request(url=url, meta=meta, callback=self.init_parse)
 
-    # step2: 获取症状分页
+    # step2: 获取分页数
     def init_parse(self, response):
 
         base_url = "{}{}_t2_p".format(
@@ -71,12 +69,11 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
             url = "{}{}".format(base_url, str(i+1))
             yield scrapy.Request(url=url, meta=response.meta, callback=self.parse)
 
-    # step3: 获取某一分页的所有症状
+    # step3: 获取某一分页的子类目
     def parse(self, response):
 
         print('--start parse--')
 
-        # 获取某一页面下 某症状 子项目的 url
         elements = response.xpath('//*[@class="result_item_top_l"]')
 
         
@@ -86,24 +83,24 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
             link = ele.xpath('a/@href').extract()[0]
 
             # # NOTE: 综述，初始添加，先运行这里
-            # yield scrapy.Request(url=link , meta=response.meta, callback=self.parse_review)
+            # yield scrapy.Request(url=link , meta=response.meta, callback=self.parse_intro)
 
-            # 症状起因
-            yield scrapy.Request(url=link + 'zzqy', callback=self.parse_cause)
+            # # 症状起因
+            # yield scrapy.Request(url=link + 'zzqy', callback=self.parse_cause)
 
-            # 诊断详述
-            yield scrapy.Request(url=link + 'zdxs', callback=self.parse_diagnosis)
+            # # 诊断详述
+            # yield scrapy.Request(url=link + 'zdxs', callback=self.parse_diagnosis)
 
-            # 检查鉴别
-            yield scrapy.Request(url=link + 'jcjb', callback=self.parse_identify)
+            # # 检查鉴别
+            # yield scrapy.Request(url=link + 'jcjb', callback=self.parse_identify)
 
-            # 就诊指南
-            yield scrapy.Request(url=link + 'jzzn', callback=self.parse_patient_guide)
+            # # 就诊指南
+            # yield scrapy.Request(url=link + 'jzzn', callback=self.parse_patient_guide)
 
     # ==============================  step4: 以下均为页面解析  =============================
 
     # 综述
-    def parse_review(self, response):
+    def parse_intro(self, response):
         # print('goto diagnosis_parse')
         item = Jbk39Item()
 
@@ -204,8 +201,6 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
         item = Jbk39Item()
 
         print('就诊指南----')
-
-        
 
         name = response.xpath('//div[@class="tik clearfix"]//h1/text()').extract()[0]
 
