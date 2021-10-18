@@ -11,8 +11,8 @@
 
 - [scrapy](https://docs.scrapy.org/en/latest/index.html)
 - scrapy list # 查看项目中的爬虫列表
-- scrapy genspider spidername # 新建一个爬虫
-- scrapy crawl spidername # 运行某个爬虫
+- scrapy genspider (name) (domain) # 新建一个爬虫
+- scrapy crawl (name) # 运行某个爬虫
 
 ## 2. 项目中爬虫作用如下
 
