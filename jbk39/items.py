@@ -26,6 +26,8 @@ class Jbk39Item(scrapy.Item):
     chinese_med_treat = scrapy.Field() #中医治疗
     symptom=scrapy.Field() # 症状
     cause=scrapy.Field() # 病因
+    possible_disease=scrapy.Field() # 症状下可能的疾病
+    treat_guide=scrapy.Field() # 就诊指南
 
     ipproxy=scrapy.Field() # 代理IP，反爬
 

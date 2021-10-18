@@ -41,10 +41,18 @@ log_file_path = './jbk39/log/scrapy_{}_{}_{}.log'.format(
 LOG_FILE = log_file_path
 
 # 超时
-DOWNLOAD_TIMEOUT = 5
+DOWNLOAD_TIMEOUT = 10
 
-# NOTE:是否使用 ip 代理
-USE_IP_PROXY = True
+
+# NOTE:以下为本爬虫程序特有的设置
+# 1. 是否使用 ip 代理
+USE_IP_PROXY = False
+
+# 2. 是否将item写入data/scrapyItem以便观察
+WRITE_SCRAPY_ITEM = True
+
+# 3. 是否将html文件写入data/htmlResponse以便管擦
+WRITE_HTML_RESPONSE = True
 
 # 保存爬虫中断（ctrl+z）时的数据，以便恢复-fg, 查看进程-jobs
 # 最好在每个爬虫那里自己设置
@@ -101,7 +109,6 @@ SPIDER_MIDDLEWARES = {
 DOWNLOADER_MIDDLEWARES = {
     'scrapy.downloadermiddlewares.useragent.UserAgentMiddleware': None,
     'jbk39.middlewares.Jbk39DownloaderMiddleware': 543,
-    'jbk39.middlewares.RandomUserAgent': 542,
     'jbk39.middlewares.ProcessAllExceptionMiddleware': 50,
 
 }

@@ -21,16 +21,17 @@ class Jbk39Pipeline(object):
 
     def open_spider(self, spider):
             print('open_spider')            
-            # # 将数据写入文件，以便查看其特征
-            # self.f = open('data/scrapyItem.json', 'w', encoding='utf-8')
+            # 将数据写入文件，以便查看其特征
+            self.f = open('data/scrapyItem.json', 'w', encoding='utf-8')
 
     def process_item(self, item, spider):
-            # # 写入文件，便于观察
-            # try:
-            #     self.f.write(json.dumps(dict(item), ensure_ascii=False))
-            #     self.f.write('\n')
-            # except Exception as e:
-            #     print(e)
+            # 写入文件，便于观察
+            if spider.settings.get("WRITE_SCRAPY_ITEM"):
+                try:
+                    self.f.write(json.dumps(dict(item), ensure_ascii=False))
+                    self.f.write('\n')
+                except Exception as e:
+                    print(e)
 
             # # TODO: 是否能写成类似下面的方式，再结合 filter
             # handle_items={
@@ -57,9 +58,19 @@ class Jbk39Pipeline(object):
             elif item['classify'] == 'ipproxy':
                     db.create_ipproxy(item)  
             elif item['classify'] == 'department':
-                    db.create_department(item)             
+                    db.create_department(item)
+            elif item['classify'] == 'symptom:intro':
+                    db.create_symptom('symptom',item)
+            elif item['classify'] == 'symptom:cause':
+                    db.update_symptom_cause('symptom',item) 
+            elif item['classify'] == 'symptom:diagnosis':
+                    db.update_symptom_diagnosis('symptom',item) 
+            elif item['classify'] == 'symptom:identify':
+                    db.update_symptom_identify('symptom',item)
+            elif item['classify'] == 'symptom:treat_guide':
+                    db.update_symptom_treat_guide('symptom',item)            
             return item
 
     def close_spider(self,spider):
             print('close_spider')
-            # self.f.close()
+            self.f.close()
