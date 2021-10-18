@@ -27,6 +27,8 @@ from itemadapter import is_item, ItemAdapter
 import time
 import json
 import random
+import shutil
+import os
 
 
 from jbk39.lib.service import DatabaseService as db
@@ -109,9 +111,10 @@ class Jbk39DownloaderMiddleware:
         # - or raise IgnoreRequest
 
         # 一定要搞清楚路径，你在第一层根目录下
-        fs = open('data/HtmlResponse.html', 'w')
-        fs.write(response.body.decode())
-        fs.close()
+        if spider.settings.get("WRITE_HTML_RESPONSE"):
+            fs = open('data/htmlResponse.html', 'w')
+            fs.write(response.body.decode())
+            fs.close()
 
         return response
 
@@ -127,17 +130,6 @@ class Jbk39DownloaderMiddleware:
         return None
 
 
-class RandomUserAgent():    # 如何运行此中间件? settings 直接添加就OK
-
-    
-    with open('jbk39/lib/config/fake_useragent.json','r') as f:
-        agent = json.load(f)['browsers']['chrome']
-
-    def process_request(self, request, spider):
-        ua = random.choice(self.agent)
-        # 在请求头里设置ua
-        request.headers.setdefault("User-Agent", ua)
-
 
 # 处理异常中间件，order=50 ，作为兜底的中间件
 
@@ -152,8 +144,12 @@ class ProcessAllExceptionMiddleware(object):
         with open('jbk39/lib/config/fake_useragent.json','r') as f:
             self.agent = json.load(f)['browsers']['chrome']
             self.ua = random.choice(self.agent)
-            
 
+        # print(spider.spider.name) # 爬虫名字
+        # 删除之前的jobs，否则spider认为已经完成工作，会立即停止
+
+        job_dir=spider.settings.get('JOBDIR')
+        shutil.rmtree(job_dir)
 
         # 是否开启代理
         self.useProxy = spider.settings.get("USE_IP_PROXY")
@@ -175,16 +171,16 @@ class ProcessAllExceptionMiddleware(object):
     def process_request(self, request, spider):
         # 好像爬取ip代理网站时不能用代理（更严格的反爬措施，或者仅仅是因为ip在他们的池子里）
 
+        request.headers.setdefault("User-Agent", self.ua)
+
         if self.useProxy:
             request.meta['proxy'] = self.proxy
-            request.headers.setdefault("User-Agent", self.ua)
         return None
 
     def process_response(self, request, response, spider):
         # 有响应，但响应内容错误
         # 捕获状态码为40x/50x的response
         # FIXME: 还有可能 使用一些伪造的 response 数据
-        # FIXME: 更换代理实际不合适，因为很渴能同时返回多个response，这时就会导致多次更换代理
 
         bodyLen = len(response.body.decode())
 
