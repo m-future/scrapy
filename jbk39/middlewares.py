@@ -232,7 +232,7 @@ class ProcessAllExceptionMiddleware(object):
         currentProxy = self.proxy  # 更换以后的代理
         requestProxy = request.meta['proxy']  # 这个异常request的代理， 有可能使用的是更换之前的代理
 
-        if requestProxy == currentProxy and time.time()-self.last_change_proxy_time > 2:
+        if requestProxy == currentProxy and time.time()-self.last_change_proxy_time > 5:
             # 如果不等于，说明该request 使用的是之前的代理，所以不需要更换，只需要用当前的代理重新请求一次就可以
             self.last_change_proxy_time = time.time()
             newProxy = db.select_random_proxy(currentProxy)

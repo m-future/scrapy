@@ -16,59 +16,50 @@ import json
 class DatabaseService():
 
     # 创建疾病数据库
-    def create_diagnosis(table, item):
+    def create_disease_diagnosis(item):
         with UsingMysql(log_time=True) as um:
-
             identify = json.dumps(item['identify'], ensure_ascii=False)
             diagnosis = json.dumps(item['diagnosis'], ensure_ascii=False)
-            sql = "insert into %s(department,`name`,identify,diagnosis) values('%s','%s','%s','%s')" % (
-                table, item['department'], item['name'], identify, diagnosis)
+            sql = "insert into disease (department,`name`,identify,diagnosis) values('%s','%s','%s','%s')" % (
+                item['department'], item['name'], identify, diagnosis)
             um.cursor.execute(sql)
-
             print("%s -【%s】创建成功" % (item["department"], item['name']))
 
     # 更新疾病-诊断
-    def update_treat(table, item):
+    def update_disease_treat(item):
         with UsingMysql(log_time=True) as um:
-
             identify = json.dumps(item['common_treat'], ensure_ascii=False)
             diagnosis = json.dumps(
                 item['chinese_med_treat'], ensure_ascii=False)
-            sql = "update %s set common_treat='%s', chinese_med_treat='%s' where `name`= '%s' " % (
-                table, identify, diagnosis, item['name'])
+            sql = "update disease set common_treat='%s', chinese_med_treat='%s' where `name`= '%s' " % (
+                identify, diagnosis, item['name'])
             um.cursor.execute(sql)
-
             print("诊疗-【%s】更新成功" % (item['name']))
 
     # 更新疾病-简介
-    def update_intro(table, item):
+    def update_disease_intro(item):
         with UsingMysql(log_time=True) as um:
-            sql = "update %s set alias='%s', introduction='%s' where `name`= '%s' " % (
-                table, item['alias'], item['intro'], item['name'])
+            sql = "update disease set summary='%s', introduction='%s' where `name`= '%s' " % (
+                item['summary'], item['intro'], item['name'])
             um.cursor.execute(sql)
-
             print("简介-【%s】更新成功" % (item['name']))
 
     # 更新疾病-病因
-    def update_cause(table, item):
+    def update_disease_cause(item):
         with UsingMysql(log_time=True) as um:
             cause = json.dumps(item['cause'], ensure_ascii=False)
-            sql = "update %s set cause='%s' where `name`= '%s' " % (
-                table, cause, item['name'])
+            sql = "update disease set cause='%s' where `name`= '%s' " % (
+                cause, item['name'])
             um.cursor.execute(sql)
-
             print("病因-【%s】更新成功" % (item['name']))
 
     # 更新疾病-症状
-    def update_symptom(table, item):
+    def update_disease_symptom(item):
         with UsingMysql(log_time=True) as um:
             symptom = json.dumps(item['symptom'], ensure_ascii=False)
-
-            sql = "update %s set symptom='%s' where `name`= '%s' " % (
-                table, symptom, item['name'])
-
+            sql = "update disease set symptom='%s' where `name`= '%s' " % (
+                symptom, item['name'])
             um.cursor.execute(sql)
-
             print("症状-【%s】更新成功" % (item['name']))
 
     # 创建科室数据库
@@ -83,7 +74,7 @@ class DatabaseService():
     # 选择科室
     def select_department(departments='ALL'):
         with UsingMysql(log_time=True) as um:
-            if departments == 'ALL':  # 全部科室
+            if departments in ('ALL', []):  # 全部科室
                 # NOTE: 如果有下级科室，则选择下级科室，比如不选fuchanke, 而是选择fuke,chanke
                 sql = 'select pinyin, chinese_name from department where pinyin not in \
                 ( select t.parent from (select parent from department ) as t \
@@ -121,16 +112,13 @@ class DatabaseService():
                 ip = oldProxy.split('/')[2].split(':')[0]
                 um.cursor.execute(
                     "update ip_proxy set available = 0, failed_times=failed_times+1 where ip= '%s'" % (ip))
-
             # TODO: 选择代理的方式有待改进
             # 这里要注意不要用代理网站的ip去爬代理网站！
             um.cursor.execute(
                 "select ip, port from ip_proxy where available=1")
             # um.cursor.execute(
             #     "select ip, port from ip_proxy where available=1 order by id")
-
             ipproxy = um.cursor.fetchone()
-
             if ipproxy:
                 newProxy = "http://{}:{}".format(
                     ipproxy['ip'], ipproxy['port'])
@@ -163,58 +151,73 @@ class DatabaseService():
             return um.cursor.fetchall()
 
     # 创建症状
-    def create_symptom(table, item):
+    def create_symptom(item):
         with UsingMysql(log_time=True) as um:
-            # item = item["ipproxy"]
-            sql = "insert into %s (`name`,intro,possible_disease) values('%s','%s','%s')" % (
-                table, item['name'], item['intro'], item['possible_disease'])
+            symptom = item["symptom"]
+            sql = "insert into symptom (`name`,intro,department,possible_disease,medicine) values('%s','%s','%s','%s','%s')" \
+                 % (item['name'], symptom['intro'], symptom['department'], symptom['possible_disease'], symptom['medicine'])
             um.cursor.execute(sql)
             print("symptom-【%s】创建成功" % (item['name']))
 
     # 更新症状 - 病因
-    def update_symptom_cause(table, item):
+    def update_symptom_cause(item):
         with UsingMysql(log_time=True) as um:
             # item = item["ipproxy"]
-            sql = "update %s set cause= '%s' where `name` = '%s' " % (
-                table, item['cause'], item['name'])
+            sql = "update symptom set cause= '%s' where `name` = '%s' " % (
+                item['cause'], item['name'])
             um.cursor.execute(sql)
             print("symptom-【%s】病因 更新成功" % (item['name']))
 
     # 更新症状 - 诊断详述
-    def update_symptom_diagnosis(table, item):
+    def update_symptom_diagnosis(item):
         with UsingMysql(log_time=True) as um:
             # item = item["ipproxy"]
-            sql = "update %s set diagnosis= '%s' where `name` = '%s' " % (
-                table, item['diagnosis'], item['name'])
+            sql = "update symptom set diagnosis= '%s' where `name` = '%s' " % (
+                item['diagnosis'], item['name'])
             um.cursor.execute(sql)
             print("symptom-【%s】诊断详述 更新成功" % (item['name']))
 
     # 更新症状 - 检查鉴别
-    def update_symptom_identify(table, item):
+    def update_symptom_identify(item):
         with UsingMysql(log_time=True) as um:
             # item = item["ipproxy"]
-            sql = "update %s set identify = '%s' where `name` = '%s' " % (
-                table, item['identify'], item['name'])
+            sql = "update symptom set identify = '%s' where `name` = '%s' " % (
+                item['identify'], item['name'])
             um.cursor.execute(sql)
             print("symptom-【%s】检查鉴别 更新成功" % (item['name']))
 
     # 更新症状 - 就诊指南
-    def update_symptom_treat_guide(table, item):
+    def update_symptom_treat_guide(item):
         with UsingMysql(log_time=True) as um:
             # item = item["ipproxy"]
-            sql = "update %s set treat_guide = '%s' where `name` = '%s' " % (
-                table, item['treat_guide'], item['name'])
+            sql = "update symptom set treat_guide = '%s' where `name` = '%s' " % (
+                item['treat_guide'], item['name'])
             um.cursor.execute(sql)
             print("symptom-【%s】就诊指南 更新成功" % (item['name']))
 
     # 创建检查鉴别
-    def create_identify(table, item):
+    def create_identify(item):
         with UsingMysql(log_time=True) as um:
             identify = item["identify"]
-            sql = "insert into %s (`name`,introduction,unsuitable_population,notes,index_explain,include_item,disease,symptom,check_affect,check_process) values('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s') " \
-                % (table, item['name'], identify['intro'], identify['unsuitable_population'], identify['notes'],
-                 identify['index_explain'], identify['include_item'], identify['disease'], identify['symptom'],
-                 identify['check_affect'], identify['check_process'])
-
+            sql = "insert into identify \
+                (`name`,department,introduction,unsuitable_population,notes,index_explain,include_item,relative_disease,relative_symptom,check_affect,check_process) \
+                values('%s', '%s','%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s') " \
+                % (item['name'], identify['department'],identify['intro'], identify['unsuitable_population'], identify['notes'],
+                    identify['index_explain'], identify['include_item'], identify['relative_disease'], identify['relative_symptom'],
+                    identify['check_affect'], identify['check_process'])
             um.cursor.execute(sql)
             print("identify-【%s】 创建成功" % (item['name']))
+
+    # 创建手术
+    def create_operation(item):
+        with UsingMysql(log_time=True) as um:
+            operation = item["operation"]
+            sql = "insert into operation \
+                (`name`,department,introduction,indication,unsuitable_population,operation_catalog,\
+                    before_operation,operative_process,after_operation,relative_disease,relative_symptom) \
+                values('%s', '%s','%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s') " \
+                % (item['name'], operation['department'],operation['intro'], operation['indication'],operation['unsuitable_population'],operation['operation_catalog'],\
+                     operation['before_operation'],operation['operative_process'], operation['after_operation'],\
+                          operation['relative_disease'], operation['relative_symptom'])
+            um.cursor.execute(sql)
+            print("operation-【%s】 创建成功" % (item['name']))

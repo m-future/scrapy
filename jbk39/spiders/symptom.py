@@ -17,9 +17,6 @@ import re
 from jbk39.lib.service import DatabaseService as db
 
 
-global count
-count = 0
-
 
 class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
 
@@ -27,8 +24,8 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
 
     custom_settings = {
         "DOWNLOAD_DELAY": 0.2,  # 覆盖settings 里面的载延迟 ， 利用代理时本身就有较大的延迟，所以此处可以设置小一点，不用担心被封
+        "USE_IP_PROXY": True,
         "JOBDIR": './jobs/{}'.format(name),
-        "USE_IP_PROXY": True
     }
 
     # step1: 开始请求
@@ -85,31 +82,36 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
             # # NOTE: 综述，初始添加，先运行这里
             # yield scrapy.Request(url=link , meta=response.meta, callback=self.parse_intro)
 
-            # # 症状起因
-            # yield scrapy.Request(url=link + 'zzqy', callback=self.parse_cause)
+            # 症状起因
+            yield scrapy.Request(url=link + 'zzqy', callback=self.parse_cause)
 
-            # # 诊断详述
-            # yield scrapy.Request(url=link + 'zdxs', callback=self.parse_diagnosis)
+            # 诊断详述
+            yield scrapy.Request(url=link + 'zdxs', callback=self.parse_diagnosis)
 
-            # # 检查鉴别
-            # yield scrapy.Request(url=link + 'jcjb', callback=self.parse_identify)
+            # 检查鉴别
+            yield scrapy.Request(url=link + 'jcjb', callback=self.parse_identify)
 
-            # # 就诊指南
-            # yield scrapy.Request(url=link + 'jzzn', callback=self.parse_patient_guide)
+            # 就诊指南
+            yield scrapy.Request(url=link + 'jzzn', callback=self.parse_patient_guide)
 
     # ==============================  step4: 以下均为页面解析  =============================
 
     # 综述
     def parse_intro(self, response):
-        # print('goto diagnosis_parse')
         item = Jbk39Item()
 
         print('综述----')
+
+        symptom={}
+
+        # 来自部门
+        symptom['department']=response.meta['pinyin']
 
         # 疾病名称
         name = response.xpath('//div[@class="tik clearfix"]//h1/text()').extract()[0]
 
         intro= response.xpath('//dd[@id="intro"]/p/text()').extract()[0]
+        symptom['intro']=StrFunc().str_format(intro)
 
         possible_disease=[] # 可能的疾病
 
@@ -122,10 +124,23 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
                 'department':ele.xpath('./td[3]/a/text()').extract() # 就诊科室
                 })
 
+        symptom['possible_disease']=json.dumps(possible_disease,ensure_ascii=False)
+
+        # 对症药物
+        medicine=[]
+        elements =response.xpath('//div[contains(@class,"lbox_drug")]/dl')
+        for ele in elements:
+            medicine.append({
+                'url':ele.xpath('./dd/h4/a/@href').extract()[0], # 链接
+                'name':ele.xpath('./dd/h4/a/@title').extract()[0], # 药名
+                'desc':ele.xpath('./dd/p/text()').extract()[0] #描述
+            })
+
+        symptom['medicine']=json.dumps(medicine,ensure_ascii=False)
+
         item["name"] = StrFunc().str_format(name)
-        item['intro'] = StrFunc().str_format(intro)
-        item['possible_disease']=json.dumps(possible_disease,ensure_ascii=False)
         item['classify'] = 'symptom:intro'
+        item['symptom'] = symptom
 
         yield item
 

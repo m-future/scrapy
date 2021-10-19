@@ -18,7 +18,7 @@ class Jbk39Item(scrapy.Item):
     name = scrapy.Field() # 疾病名
     classify = scrapy.Field() # 分类
     intro = scrapy.Field() # 简介
-    alias = scrapy.Field() # 别名
+    summary = scrapy.Field() # 概述
     department = scrapy.Field() # 科室 {"pinyin":"fuke","chinese_name":"妇科","pId":"fuchangke"}
     diagnosis = scrapy.Field() #诊断
     identify = scrapy.Field() #鉴别
@@ -28,7 +28,7 @@ class Jbk39Item(scrapy.Item):
     cause=scrapy.Field() # 病因
     possible_disease=scrapy.Field() # 症状下可能的疾病
     treat_guide=scrapy.Field() # 就诊指南
-
+    operation=scrapy.Field() # 手术
     ipproxy=scrapy.Field() # 代理IP，反爬
 
     pass

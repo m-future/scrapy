@@ -99,19 +99,22 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
             {'label':'人群','col':'unsuitable_population'},
             {'label':'包含项目','col':'include_item'},
             {'label':'解读','col':'index_explain'},
-            {'label':'相关疾病','col':'disease'},
-            {'label':'相关症状','col':'symptom'},
+            {'label':'相关疾病','col':'relative_disease'},
+            {'label':'相关症状','col':'relative_symptom'},
             {'label':'检查作用','col':'check_affect'},
             {'label':'检查过程','col':'check_process'}
             ]
 
         # 提前设定好，避免后续存储时麻烦
         identify = {}
+        
+        identify['department']=response.meta['pinyin']
+
         for key in catalogs:
-            identify[key['col']]='' if key['label']=='intro' else []
+            identify[key['col']]='' if key['label'] in ('intro','department') else []
                 
 
-        intro= response.xpath('//div[@id="intro"]/span').extract()[0]
+        intro= response.xpath('//div[contains(@class,"des")]/span').extract()[0]
 
 
         identify['intro']=StrFunc().str_format(intro)
@@ -121,7 +124,7 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
 
         for ele in elements:
 
-            label= ele.xpath('./div[@class="tit clearfix"]/*/text()').extract()[0] # 目录标签
+            label= ele.xpath('./div[contains(@class,"clearfix")]/*/text()').extract()[0] # 目录标签
         
             catalog= list(filter(lambda x: label.find(x['label']) > -1, catalogs))[0]
 
@@ -132,7 +135,7 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
             if col in ('disease', 'symptom'):
                 identify[col]=ele.xpath('.//li/a/text()').extract()
             elif col == 'include_item':
-                data = ele.xpath('.//table//tr[position()>1]/td').extract()
+                data = ele.xpath('.//table//tr[position()>1]/td[position()=1]').extract()
                 result = list(map(lambda x: StrFunc().str_format(x),data))
                 identify[col]=result
             else:
@@ -141,7 +144,7 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
                 identify[col]=result
 
         for key in  identify:
-            if key=='intro':
+            if key in ('intro','department'):
                 continue
             identify[key]=json.dumps(identify[key],ensure_ascii=False)
 

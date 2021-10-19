@@ -35,7 +35,8 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
         print('--start request--')
 
 
-        departments = db.select_department(['fuke'])
+        departments = db.select_department([])
+
 
         base_url = "https://jbk.39.net/bw/"
 
@@ -65,6 +66,7 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
             pages = 1
             # raise ValueError("no page  count found.")
 
+        # NOTE: 当分页数超过100时，能爬到的数据并不相同
         for i in range(pages):
             # step2.2: 请求某一分页
             url = "{}{}".format(base_url, str(i+1))
@@ -89,13 +91,13 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
             yield scrapy.Request(url=link + 'jbzs', callback=self.intro_parse)
 
             # 治疗
-            yield scrapy.Request(url=link + 'yyzl', callback=self.treat_parse)
+            # yield scrapy.Request(url=link + 'yyzl', callback=self.treat_parse)
 
-            # 症状
-            yield scrapy.Request(url=link + 'zztz', callback=self.symptom_parse)
+            # # 症状
+            # yield scrapy.Request(url=link + 'zztz', callback=self.symptom_parse)
 
-            # 病因
-            yield scrapy.Request(url=link + 'blby', callback=self.cause_parse)
+            # # 病因
+            # yield scrapy.Request(url=link + 'blby', callback=self.cause_parse)
 
     # ==============================  step4: 以下均为页面解析  =============================
 
@@ -103,17 +105,32 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
 
     def intro_parse(self, response):
 
+        print('疾病基本信息-----')
+
+        global count
+
+        count=count+1
+        print(count)
+
         item = Jbk39Item()
         name = response.xpath('//div[@class="disease"]/h1/text()').extract()[0]
         intro = response.xpath('//p[@class="introduction"]').extract()[0]
-        txt = response.xpath(
-            '//span[@class="disease_basic_txt"]/text()').extract()
 
-        alias = txt[1].strip() if len(txt) > 1 else ''
+        # 概述
+        summary={} 
+
+        elements=response.xpath('.//ul[@class="disease_basic"]/li')
+
+        for ele in elements:
+            key=ele.xpath('./span/text()').extract()[0].replace(u'：',u'')
+            value=list(map(lambda x:  StrFunc().str_format(x),ele.xpath('./span[position()>1]/a | ./span[position()>1]/text() \
+                | ./span[position()>1]/span/text() | ./span[position()>1]/p/text()').extract()))
+            value=list(filter(lambda x: x not in ('','[',']','详细'),value))
+            summary[key]=value
 
         item['intro'] = StrFunc().str_format(intro)
-        item['alias'] = StrFunc().str_format(alias)
-        item['classify'] = 'intro'
+        item['summary']= json.dumps(summary,ensure_ascii=False)
+        item['classify'] = 'disease:intro'
         item['name'] = name
         yield item
 
@@ -144,7 +161,7 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
 
         item["common_treat"] = common_treat
         item["chinese_med_treat"] = chinese_med_treat
-        item['classify'] = 'treat'
+        item['classify'] = 'disease:treat'
         item['name'] = name
 
         yield item
@@ -166,7 +183,7 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
             symptom.append(mystr)
 
         item["symptom"] = symptom
-        item['classify'] = 'symptom'
+        item['classify'] = 'disease:symptom'
         item['name'] = name
 
         count = count+1
@@ -190,7 +207,7 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
             cause.append(mystr)
 
         item["cause"] = cause
-        item['classify'] = 'cause'
+        item['classify'] = 'disease:cause'
         item['name'] = name
 
         yield item
@@ -222,6 +239,6 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
         item["identify"] = identify
         item["name"] = name
         item['department'] = response.meta["pinyin"]
-        item['classify'] = 'diagnosis'
+        item['classify'] = 'disease:diagnosis'
 
         yield item
