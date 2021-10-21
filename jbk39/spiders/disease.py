@@ -2,7 +2,6 @@
 Author: mfuture@qq.com
 Date: 2021-04-27 11:38:22
 Description: 特定科室下疾病内容的爬取
-FilePath: /health39/jbk39/spiders/disease.py
 '''
 import scrapy
 import time  # 引入time模块
@@ -26,7 +25,8 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
 
     custom_settings = {
         "DOWNLOAD_DELAY": 0.05,  # 覆盖settings 里面的载延迟 ， 利用代理时本身就有较大的延迟，所以此处可以设置小一点，不用担心被封
-        "JOBDIR": './jobs/{}'.format(name)
+        "JOBDIR": './jobs/{}'.format(name),
+        "USE_IP_PROXY": True
     }
 
     # step1: 开始请求
@@ -34,9 +34,7 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
 
         print('--start request--')
 
-
-        departments = db.select_department([])
-
+        departments = db.select_department(['fuke'])
 
         base_url = "https://jbk.39.net/bw/"
 
@@ -79,6 +77,15 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
 
         # 获取某一页面下 某疾病 子项目的 url
         diseaseUrls = response.xpath('//*[@class="result_item_top_l"]')
+
+        # 没有数据，构造异常请求，用于中间件处理
+        if len(diseaseUrls) == 0:
+            print(response.url)
+            self.logger.error("NO available data found from:{}, will try again.".format(response.url))
+            yield scrapy.Request(url=response.url, meta={'exception':True}, callback=self.diagnosis_parse)
+            return 
+
+
         for item in diseaseUrls:
             # 该病的url，比如 "https://jbk.39.net/jxzgnmy/"
 
@@ -88,16 +95,16 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
             # yield scrapy.Request(url=link + 'jb', meta=response.meta, callback=self.diagnosis_parse)
 
             # 简介
-            yield scrapy.Request(url=link + 'jbzs', callback=self.intro_parse)
+            yield scrapy.Request(url=link + 'jbzs', meta={'url': link}, callback=self.intro_parse)
 
             # 治疗
-            # yield scrapy.Request(url=link + 'yyzl', callback=self.treat_parse)
+            yield scrapy.Request(url=link + 'yyzl', callback=self.treat_parse)
 
-            # # 症状
-            # yield scrapy.Request(url=link + 'zztz', callback=self.symptom_parse)
+            # 症状
+            yield scrapy.Request(url=link + 'zztz', meta=response.meta, callback=self.symptom_parse)
 
-            # # 病因
-            # yield scrapy.Request(url=link + 'blby', callback=self.cause_parse)
+            # 病因
+            yield scrapy.Request(url=link + 'blby', callback=self.cause_parse)
 
     # ==============================  step4: 以下均为页面解析  =============================
 
@@ -107,29 +114,27 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
 
         print('疾病基本信息-----')
 
-        global count
-
-        count=count+1
-        print(count)
-
         item = Jbk39Item()
         name = response.xpath('//div[@class="disease"]/h1/text()').extract()[0]
         intro = response.xpath('//p[@class="introduction"]').extract()[0]
 
         # 概述
-        summary={} 
+        summary = {}
 
-        elements=response.xpath('.//ul[@class="disease_basic"]/li')
+        elements = response.xpath('.//ul[@class="disease_basic"]/li')
 
         for ele in elements:
-            key=ele.xpath('./span/text()').extract()[0].replace(u'：',u'')
-            value=list(map(lambda x:  StrFunc().str_format(x),ele.xpath('./span[position()>1]/a | ./span[position()>1]/text() \
+            key = ele.xpath('./span/text()').extract()[0].replace(u'：', u'')
+            value = list(map(lambda x:  StrFunc().str_format(x), ele.xpath('./span[position()>1]/a | ./span[position()>1]/text() \
                 | ./span[position()>1]/span/text() | ./span[position()>1]/p/text()').extract()))
-            value=list(filter(lambda x: x not in ('','[',']','详细'),value))
-            summary[key]=value
+            value = list(
+                filter(lambda x: x not in ('', '[', ']', '详细'), value))
+            summary[key] = value
+
 
         item['intro'] = StrFunc().str_format(intro)
-        item['summary']= json.dumps(summary,ensure_ascii=False)
+        item['url'] = StrFunc().str_format(response.meta['url'])
+        item['summary'] = json.dumps(summary, ensure_ascii=False)
         item['classify'] = 'disease:intro'
         item['name'] = name
         yield item
@@ -182,12 +187,12 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
             mystr = StrFunc().str_format(text)
             symptom.append(mystr)
 
+        count=count+1
+        print('symptom count: {}'.format(count))
+
         item["symptom"] = symptom
         item['classify'] = 'disease:symptom'
         item['name'] = name
-
-        count = count+1
-        print('count symptom : %d' % (count))
 
         yield item
 
