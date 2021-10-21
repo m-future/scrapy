@@ -15,8 +15,10 @@ import re
 from jbk39.lib.service import DatabaseService as db
 
 
-global count
+global count, resend
 count = 0
+
+resend = 0  # 重发请求
 
 
 class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
@@ -24,7 +26,7 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
     name = "disease"  # 定义蜘蛛名
 
     custom_settings = {
-        "DOWNLOAD_DELAY": 0.05,  # 覆盖settings 里面的载延迟 ， 利用代理时本身就有较大的延迟，所以此处可以设置小一点，不用担心被封
+        "DOWNLOAD_DELAY": 0.01,  # 覆盖settings 里面的载延迟 ， 利用代理时本身就有较大的延迟，所以此处可以设置小一点，不用担心被封
         "JOBDIR": './jobs/{}'.format(name),
         "USE_IP_PROXY": True
     }
@@ -34,7 +36,7 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
 
         print('--start request--')
 
-        departments = db.select_department(['fuke'])
+        departments = db.select_department([])
 
         base_url = "https://jbk.39.net/bw/"
 
@@ -75,16 +77,21 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
 
         print('--start parse--')
 
+        global resend
+
         # 获取某一页面下 某疾病 子项目的 url
         diseaseUrls = response.xpath('//*[@class="result_item_top_l"]')
 
-        # 没有数据，构造异常请求，用于中间件处理
+        # 没有数据，重发请求
         if len(diseaseUrls) == 0:
-            print(response.url)
-            self.logger.error("NO available data found from:{}, will try again.".format(response.url))
-            yield scrapy.Request(url=response.url, meta={'exception':True}, callback=self.diagnosis_parse)
-            return 
-
+            resend = resend+1
+            if resend < 3:  # 因为有些科室本来就没有疾病,比如 https://jbk.39.net/bw/heyixueke_t1_p1
+                print('--d0as-0d-as0-d0as-d0-sads--============--'+response.url)
+                self.logger.error(
+                    "NO available data found from:{}, will try again.".format(response.url))
+                time.sleep(1)
+                yield scrapy.Request(url=response.url, dont_filter=True, callback=self.parse)
+                return
 
         for item in diseaseUrls:
             # 该病的url，比如 "https://jbk.39.net/jxzgnmy/"
@@ -130,7 +137,6 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
             value = list(
                 filter(lambda x: x not in ('', '[', ']', '详细'), value))
             summary[key] = value
-
 
         item['intro'] = StrFunc().str_format(intro)
         item['url'] = StrFunc().str_format(response.meta['url'])
@@ -187,7 +193,7 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
             mystr = StrFunc().str_format(text)
             symptom.append(mystr)
 
-        count=count+1
+        count = count+1
         print('symptom count: {}'.format(count))
 
         item["symptom"] = symptom
