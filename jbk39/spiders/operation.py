@@ -2,7 +2,6 @@
 Author: mfuture@qq.com
 Date: 2021-10-19 09:52:35
 Description: 手术
-FilePath: /health39/jbk39/spiders/operation.py
 '''
 
 import scrapy

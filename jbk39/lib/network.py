@@ -2,7 +2,6 @@
 Author: mfuture@qq.com
 Date: 2021-10-16 18:20:57
 Description: 扫描代理IP更新其是否可用
-FilePath: /health39/jbk39/lib/network.py
 '''
 
 import re

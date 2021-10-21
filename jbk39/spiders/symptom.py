@@ -2,7 +2,6 @@
 Author: mfuture@qq.com
 Date: 2021-10-18 09:11:34
 Description: 爬取39健康网症状
-FilePath: /health39/jbk39/spiders/symptom.py
 '''
 
 import scrapy

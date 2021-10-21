@@ -2,7 +2,6 @@
 Author: mfuture@qq.com
 Date: 2021-10-12 14:33:50
 Description:  执行数据库操作
-FilePath: /health39/jbk39/lib/service.py
 '''
 #! /usr/bin/python3
 # -*- coding: UTF-8 -*-
@@ -17,11 +16,13 @@ class DatabaseService():
 
     # 创建疾病数据库
     def create_disease_diagnosis(item):
+        # 一种疾病可能属于不同的科室，所以更新先后会导致查询某一科室下疾病数量不同
         with UsingMysql(log_time=True) as um:
             identify = json.dumps(item['identify'], ensure_ascii=False)
             diagnosis = json.dumps(item['diagnosis'], ensure_ascii=False)
-            sql = "insert into disease (department,`name`,identify,diagnosis) values('%s','%s','%s','%s')" % (
-                item['department'], item['name'], identify, diagnosis)
+            sql = "insert into disease (department,`name`,identify,diagnosis) values('%s','%s','%s','%s') \
+                on duplicate key update diagnosis='%s'" % (
+                item['department'], item['name'], identify, diagnosis, diagnosis)
             um.cursor.execute(sql)
             print("%s -【%s】创建成功" % (item["department"], item['name']))
 
@@ -39,8 +40,8 @@ class DatabaseService():
     # 更新疾病-简介
     def update_disease_intro(item):
         with UsingMysql(log_time=True) as um:
-            sql = "update disease set summary='%s', introduction='%s' where `name`= '%s' " % (
-                item['summary'], item['intro'], item['name'])
+            sql = "update disease set url='%s', summary='%s', introduction='%s' where `name`= '%s' " % (
+                item['url'],item['summary'], item['intro'], item['name'])
             um.cursor.execute(sql)
             print("简介-【%s】更新成功" % (item['name']))
 

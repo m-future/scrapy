@@ -2,7 +2,6 @@
 Author: mfuture@qq.com
 Date: 2021-10-14 19:41:40
 Description: 从网络第三方获取免费代理ip
-FilePath: /health39/jbk39/spiders/ipproxy.py
 '''
 import scrapy
 from jbk39.items import Jbk39Item

@@ -4,7 +4,6 @@ Date: 2021-10-13 22:46:09
 LastEditTime: 2021-10-16 12:56:55
 LastEditors: mfuture@qq.com
 Description: 预先爬取各科室并存储，语句解释可参考 disease 爬虫
-FilePath: /health39/jbk39/spiders/department.py
 '''
 from pymysql import NULL
 import scrapy

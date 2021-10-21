@@ -2,7 +2,6 @@
 Author: mfuture@qq.com
 Date: 2021-10-13 17:03:51
 Description: 常用处理函数
-FilePath: /health39/jbk39/lib/common.py
 '''
 
 import re

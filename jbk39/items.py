@@ -2,7 +2,6 @@
 Author: mfuture@qq.com
 Date: 2021-10-14 12:42:00
 Description: scrapy item 容器
-FilePath: /health39/jbk39/items.py
 '''
 # Define here the models for your scraped items
 #
@@ -18,6 +17,7 @@ class Jbk39Item(scrapy.Item):
     name = scrapy.Field() # 疾病名
     classify = scrapy.Field() # 分类
     intro = scrapy.Field() # 简介
+    url=scrapy.Field() # 网址
     summary = scrapy.Field() # 概述
     department = scrapy.Field() # 科室 {"pinyin":"fuke","chinese_name":"妇科","pId":"fuchangke"}
     diagnosis = scrapy.Field() #诊断

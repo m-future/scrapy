@@ -2,7 +2,6 @@
 Author: mfuture@qq.com
 Date: 2021-04-22 14:28:08
 Description:
-FilePath: /health39/jbk39/pipelines.py
 '''
 # Define your item pipelines here
 #

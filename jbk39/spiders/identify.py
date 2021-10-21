@@ -2,7 +2,6 @@
 Author: mfuture@qq.com
 Date: 2021-10-18 15:15:00
 Description: 检查鉴别方式
-FilePath: /health39/jbk39/spiders/identify.py
 '''
 
 

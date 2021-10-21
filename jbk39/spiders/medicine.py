@@ -2,7 +2,6 @@
 Author: mfuture@qq.com
 Date: 2021-10-18 08:50:50
 Description: 爬取39健康网药物
-FilePath: /health39/jbk39/spiders/medicine.py
 '''
 
 import scrapy

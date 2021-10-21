@@ -2,7 +2,6 @@
 Author: mfuture@qq.com
 Date: 2021-04-22 14:35:56
 Description: 
-FilePath: /health39/jbk39/settings.py
 '''
 
 import datetime
@@ -46,7 +45,7 @@ DOWNLOAD_TIMEOUT = 10
 
 # NOTE:以下为本爬虫程序特有的设置
 # 1. 是否使用 ip 代理
-USE_IP_PROXY = False
+USE_IP_PROXY = True
 
 # 2. 是否将item写入data/scrapyItem以便观察
 WRITE_SCRAPY_ITEM = True

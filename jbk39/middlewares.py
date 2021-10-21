@@ -28,6 +28,7 @@ import json
 import random
 import shutil
 import os
+import sys
 
 
 from jbk39.lib.service import DatabaseService as db
@@ -65,6 +66,7 @@ class Jbk39SpiderMiddleware:
         # (from other spider middleware) raises an exception.
 
         # Should return either None or an iterable of Request or item objects.
+        
         pass
 
     def process_start_requests(self, start_requests, spider):
@@ -113,7 +115,7 @@ class Jbk39DownloaderMiddleware:
         if spider.settings.get("WRITE_HTML_RESPONSE"):
             fs = open('data/htmlResponse.html', 'w')
             fs.write(response.body.decode())
-            fs.close()
+            fs.close()       
 
         return response
 
@@ -182,12 +184,6 @@ class ProcessAllExceptionMiddleware(object):
         # FIXME: 还有可能 使用一些伪造的 response 数据
 
         # spider 手动构造的异常
-
-        try:
-            if request.meta['exception']:
-                response.status=-1
-        except Exception as e:
-            pass
 
         bodyLen = len(response.body.decode())
 
