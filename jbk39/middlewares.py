@@ -2,7 +2,6 @@
 Author: mfuture@qq.com
 Date: 2021-04-21 16:41:24
 Description: scrapy middleware
-FilePath: /health39/jbk39/middlewares.py
 '''
 # Define here the models for your spider middleware
 #
@@ -181,6 +180,14 @@ class ProcessAllExceptionMiddleware(object):
         # 有响应，但响应内容错误
         # 捕获状态码为40x/50x的response
         # FIXME: 还有可能 使用一些伪造的 response 数据
+
+        # spider 手动构造的异常
+
+        try:
+            if request.meta['exception']:
+                response.status=-1
+        except Exception as e:
+            pass
 
         bodyLen = len(response.body.decode())
 
