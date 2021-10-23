@@ -63,6 +63,15 @@ class DatabaseService():
             um.cursor.execute(sql)
             print("症状-【%s】更新成功" % (item['name']))
 
+    # 更新疾病-症状
+    def update_disease_prevention(item):
+        with UsingMysql(log_time=True) as um:
+            symptom = json.dumps(item['prevention'], ensure_ascii=False)
+            sql = "update disease set prevention='%s' where `name`= '%s' " % (
+                symptom, item['name'])
+            um.cursor.execute(sql)
+            print("预防-【%s】更新成功" % (item['name']))
+
     # 创建科室数据库
     def create_department(item):
         with UsingMysql(log_time=True) as um:

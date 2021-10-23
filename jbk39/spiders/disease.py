@@ -86,7 +86,6 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
         if len(diseaseUrls) == 0:
             resend = resend+1
             if resend < 3:  # 因为有些科室本来就没有疾病,比如 https://jbk.39.net/bw/heyixueke_t1_p1
-                print('--d0as-0d-as0-d0as-d0-sads--============--'+response.url)
                 self.logger.error(
                     "NO available data found from:{}, will try again.".format(response.url))
                 time.sleep(1)
@@ -101,17 +100,21 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
             # # NOTE: 诊断，初始添加，先运行这里
             # yield scrapy.Request(url=link + 'jb', meta=response.meta, callback=self.diagnosis_parse)
 
-            # 简介
-            yield scrapy.Request(url=link + 'jbzs', meta={'url': link}, callback=self.intro_parse)
+            # # 简介
+            # yield scrapy.Request(url=link + 'jbzs', meta={'url': link}, callback=self.intro_parse)
 
-            # 治疗
-            yield scrapy.Request(url=link + 'yyzl', callback=self.treat_parse)
+            # # 治疗
+            # yield scrapy.Request(url=link + 'yyzl', callback=self.treat_parse)
 
-            # 症状
-            yield scrapy.Request(url=link + 'zztz', meta=response.meta, callback=self.symptom_parse)
+            # # 症状
+            # yield scrapy.Request(url=link + 'zztz', meta=response.meta, callback=self.symptom_parse)
 
-            # 病因
-            yield scrapy.Request(url=link + 'blby', callback=self.cause_parse)
+            # # 病因
+            # yield scrapy.Request(url=link + 'blby', callback=self.cause_parse)
+
+            # 预防
+            yield scrapy.Request(url=link + 'yfhl', callback=self.prevention_parse)
+
 
     # ==============================  step4: 以下均为页面解析  =============================
 
@@ -219,6 +222,27 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
 
         item["cause"] = cause
         item['classify'] = 'disease:cause'
+        item['name'] = name
+
+        yield item
+
+    # 预防
+    def prevention_parse(self, response):
+
+        item = Jbk39Item()
+
+        name = response.xpath('//div[@class="disease"]/h1/text()').extract()[0]
+
+        prevention = []
+        text_lists_prevention = response.xpath(
+            '//div[@class="article_box"]//p').extract()
+
+        for text in text_lists_prevention:
+            mystr = StrFunc().str_format(text)
+            prevention.append(mystr)
+
+        item["prevention"] = prevention
+        item['classify'] = 'disease:prevention'
         item['name'] = name
 
         yield item

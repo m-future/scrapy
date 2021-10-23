@@ -40,6 +40,7 @@ class Jbk39Pipeline(object):
             "disease:intro": db.update_disease_intro,
             "disease:symptom": db.update_disease_symptom,
             "disease:cause": db.update_disease_cause,
+            "disease:prevention": db.update_disease_prevention,
 
             # 症状
             "symptom:intro": db.create_symptom,
