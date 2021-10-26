@@ -21,12 +21,17 @@ count = 0
 resend = 0  # 重发请求
 
 
+# https://jbk.39.net/wylbgl/jb/
+
+# https://jbk.39.net/yjbt/jb/
+
+
 class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
 
     name = "disease"  # 定义蜘蛛名
 
     custom_settings = {
-        "DOWNLOAD_DELAY": 0.01,  # 覆盖settings 里面的载延迟 ， 利用代理时本身就有较大的延迟，所以此处可以设置小一点，不用担心被封
+        "DOWNLOAD_DELAY": 0.02,  # 覆盖settings 里面的载延迟 ， 利用代理时本身就有较大的延迟，所以此处可以设置小一点，不用担心被封
         "JOBDIR": './jobs/{}'.format(name),
         "USE_IP_PROXY": True
     }
@@ -36,7 +41,7 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
 
         print('--start request--')
 
-        departments = db.select_department([])
+        departments = db.select_department(['fuke'])
 
         base_url = "https://jbk.39.net/bw/"
 
@@ -89,7 +94,7 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
                 self.logger.error(
                     "NO available data found from:{}, will try again.".format(response.url))
                 time.sleep(1)
-                yield scrapy.Request(url=response.url, dont_filter=True, callback=self.parse)
+                yield scrapy.Request(url=response.url, meta=response.meta, dont_filter=True, callback=self.parse)
                 return
 
         for item in diseaseUrls:
@@ -97,14 +102,16 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
 
             link = item.xpath('a/@href').extract()[0]
 
+            response.meta['url']=link
+
             # # NOTE: 诊断，初始添加，先运行这里
             # yield scrapy.Request(url=link + 'jb', meta=response.meta, callback=self.diagnosis_parse)
 
             # # 简介
             # yield scrapy.Request(url=link + 'jbzs', meta={'url': link}, callback=self.intro_parse)
 
-            # # 治疗
-            # yield scrapy.Request(url=link + 'yyzl', callback=self.treat_parse)
+            # 治疗
+            yield scrapy.Request(url=link + 'yyzl', callback=self.treat_parse)
 
             # # 症状
             # yield scrapy.Request(url=link + 'zztz', meta=response.meta, callback=self.symptom_parse)
@@ -112,8 +119,8 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
             # # 病因
             # yield scrapy.Request(url=link + 'blby', callback=self.cause_parse)
 
-            # 预防
-            yield scrapy.Request(url=link + 'yfhl', callback=self.prevention_parse)
+            # # 预防
+            # yield scrapy.Request(url=link + 'yfhl', callback=self.prevention_parse)
 
 
     # ==============================  step4: 以下均为页面解析  =============================
@@ -161,6 +168,19 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
         text_lists = response.xpath(
             '//p[@class="article_name"] | //p[@class="article_content_text"]').extract()
 
+        allP=response.xpath('//div[@class="article_paragraph"]') # 西医中医分成两块
+
+        pwithnum=response.xpath('//div[@class="article_paragraph"]//p[@class="article_title_num"]')
+
+        # p=response.xpath('index-of(//div[@class="article_paragraph"],//div[@class="article_paragraph"]//p[@class="article_title_num"])')
+
+        # p=response.xpath('count(//p[@class="article_title_num"])')
+
+        p=response.xpath('//p[index-of(@class,"article_title_num")]')
+
+        print(p)
+
+        return
         for text in text_lists:
             mystr = StrFunc().str_format(text)
             if mystr.find('中医治疗') >= 0:
@@ -254,26 +274,109 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
 
         # 疾病名称
         name = response.xpath('//div[@class="disease"]/h1/text()').extract()[0]
-        diagnosis = []  # 诊断
+
+        # 鉴别
         identify = []  # 鉴别
 
-        text_lists_diagnosis = response.xpath(
-            '//div[@class="art-box"]/p').extract()
-        text_lists_identify = response.xpath(
-            '//div[@class="article_paragraph"]/p ').extract()
+        paragraphs= response.xpath('//div[@class="article_paragraph"]/p')
 
-        for text in text_lists_diagnosis:
-            mystr = StrFunc().str_format(text)
-            diagnosis.append(mystr)
+        lists=paragraphs.xpath('./@class').extract()
 
-        for text in text_lists_identify:
-            mystr = StrFunc().str_format(text)
-            identify.append(mystr)
+        indexes=[i for i, x in enumerate(lists) if x=="article_name"]
 
-        item["diagnosis"] = diagnosis
-        item["identify"] = identify
+        indexes.append(len(lists)) 
+
+        for i,x in enumerate(indexes):
+            if i==len(indexes)-1:
+                break
+            
+            title=paragraphs[x].extract()
+            content=self.parse_paragraph(paragraphs[x+1:indexes[i+1]].extract())
+
+            title=StrFunc().str_format(title)
+
+            title=re.sub(r'[：,:]',u'',title)
+            title=re.sub(r'.*）',u'',title)
+            title=re.sub(r'.*\d\.',u'',title)
+
+
+            if len(content)>0:
+                if isinstance(content,list):
+                    for x in content:
+                        identify.append(x)
+                else:
+                    identify.append({'title':title,'content':content})
+         
+         # 诊断
+        diagnosis = []  # 鉴别
+
+        paragraphs= response.xpath('//div[@class="art-box"]/p')
+
+        lists=paragraphs.xpath('./@class').extract()
+
+        indexes=[i for i, x in enumerate(lists) if x=="article_name"]
+
+        indexes.append(len(lists)) 
+
+
+        for i,x in enumerate(indexes):
+            if i==len(indexes)-1:
+                break
+            
+            title=paragraphs[x].extract()
+            content=self.parse_paragraph(paragraphs[x+1:indexes[i+1]].extract())
+
+            title=StrFunc().str_format(title)
+            title=re.sub(r'[：,:]',u'',title)
+            title=re.sub(r'.*）',u'',title)
+            title=re.sub(r'.*\d\.',u'',title)
+
+
+            if len(content)>0:
+                if isinstance(content,list):
+                    for x in content:
+                        diagnosis.append(x)
+                else:
+                    diagnosis.append({'title':title,'content':content})        
+
+
+
         item["name"] = name
         item['department'] = response.meta["pinyin"]
+        item["identify"] = identify
+        item["diagnosis"] = diagnosis
         item['classify'] = 'disease:diagnosis'
 
         yield item
+
+
+        # 解析段落 根据1.2.这种标志
+    def parse_paragraph(self,paras):
+
+        results=[]
+        sub_title_found=False
+
+        paras=list(map(lambda x: StrFunc().str_format(x),paras))
+
+
+        for x in paras:
+            label=re.search('[\d]\.',x) 
+            title=re.search('[：, :]',x)
+
+            if label and title:
+                sub_title_found=True
+                titlePosi=title.span()[1]
+                title=x[:titlePosi-1]
+                title=re.sub(r'.*）',u'',title)
+                title=re.sub(r'.*\d\.',u'',title)
+
+                content=x[titlePosi:]
+                results.append({'title':title,'content':content})
+            else:
+                results.append({'content':x})
+        
+        if not sub_title_found:
+
+            return ''.join(paras)
+        else:
+            return results
