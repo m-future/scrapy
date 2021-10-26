@@ -18,7 +18,7 @@ class IpproxySpider(scrapy.Spider):
 
     def start_requests(self):
 
-        for i in range(1,50): 
+        for i in range(1,10): 
             url='http://www.feidudaili.com/index/gratis/index?page={}'.format(i+1) # 飞度代理
             # url = 'https://www.kuaidaili.com/free/inha/{}/'.format(i+1) # 快代理
             yield scrapy.Request(url=url, callback=self.init_parse)
