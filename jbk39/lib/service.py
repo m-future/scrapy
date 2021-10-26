@@ -21,8 +21,8 @@ class DatabaseService():
             identify = json.dumps(item['identify'], ensure_ascii=False)
             diagnosis = json.dumps(item['diagnosis'], ensure_ascii=False)
             sql = "insert into disease (department,`name`,identify,diagnosis) values('%s','%s','%s','%s') \
-                on duplicate key update diagnosis='%s'" % (
-                item['department'], item['name'], identify, diagnosis, diagnosis)
+                on duplicate key update diagnosis='%s',identify='%s'" % (
+                item['department'], item['name'], identify, diagnosis, diagnosis,identify)
             um.cursor.execute(sql)
             print("%s -【%s】创建成功" % (item["department"], item['name']))
 
