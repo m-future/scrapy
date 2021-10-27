@@ -28,16 +28,14 @@ resend = 0  # 重发请求
 
 # 外阴乳头状瘤
 
-data=['1、图','简介','2.sasj','nihaos:','等等:','3.']
-
 class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
 
     name = "disease"  # 定义蜘蛛名
 
     custom_settings = {
-        "DOWNLOAD_DELAY": 0.02,  # 覆盖settings 里面的载延迟 ， 利用代理时本身就有较大的延迟，所以此处可以设置小一点，不用担心被封
+        "DOWNLOAD_DELAY": 0.05,  # 覆盖settings 里面的载延迟 ， 利用代理时本身就有较大的延迟，所以此处可以设置小一点，不用担心被封
         "JOBDIR": './jobs/{}'.format(name),
-        "USE_IP_PROXY": True
+        "USE_IP_PROXY": False
     }
 
     # step1: 开始请求
@@ -80,7 +78,7 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
             # raise ValueError("no page  count found.")
 
         # NOTE: 当分页数超过100时，能爬到的数据并不相同
-        for i in range(1):
+        for i in range(pages):
             # step2.2: 请求某一分页
             url = "{}{}".format(base_url, str(i+1))
             yield scrapy.Request(url=url, meta=response.meta, callback=self.parse)
@@ -112,23 +110,23 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
 
             response.meta['url']=link
 
-            # # NOTE: 诊断，初始添加，先运行这里
-            # yield scrapy.Request(url=link + 'jb', meta=response.meta, callback=self.diagnosis_parse)
+            # NOTE: 诊断，初始添加，先运行这里
+            yield scrapy.Request(url=link + 'jb', meta=response.meta, callback=self.diagnosis_parse)
 
-            # # 简介
-            # yield scrapy.Request(url=link + 'jbzs', meta={'url': link}, callback=self.intro_parse)
+            # 简介
+            yield scrapy.Request(url=link + 'jbzs', meta={'url': link}, callback=self.intro_parse)
 
             # 治疗
             yield scrapy.Request(url=link + 'yyzl', callback=self.treat_parse)
 
-            # # 症状
-            # yield scrapy.Request(url=link + 'zztz', meta=response.meta, callback=self.symptom_parse)
+            # 症状
+            yield scrapy.Request(url=link + 'zztz', meta=response.meta, callback=self.symptom_parse)
 
-            # # 病因
-            # yield scrapy.Request(url=link + 'blby', callback=self.cause_parse)
+            # 病因
+            yield scrapy.Request(url=link + 'blby', callback=self.cause_parse)
 
-            # # 预防
-            # yield scrapy.Request(url=link + 'yfhl', callback=self.prevention_parse)
+            # 预防
+            yield scrapy.Request(url=link + 'yfhl', callback=self.prevention_parse)
 
 
     # ==============================  step4: 以下均为页面解析  =============================
@@ -171,33 +169,17 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
 
         name = response.xpath('//div[@class="disease"]/h1/text()').extract()[0]
 
-        # common_treat = []
-        # chinese_med_treat = []
-        # flag = 1  # 1、西医治疗； 2、中医治疗
-        # text_lists = response.xpath(
-        #     '//p[@class="article_name"] | //p[@class="article_content_text"]').extract()
-        # for text in text_lists:
-        #     mystr = StrFunc().str_format(text)
-        #     if mystr.find('中医治疗') >= 0:
-        #         flag = 2
+        path='//div[@class="article_paragraph"]/p'
 
-        #     if mystr.find("西医治疗") < 0 and mystr.find("中医治疗") < 0:
-
-        #         if flag == 1:
-        #             common_treat.append(mystr)
-        #         else:
-        #             chinese_med_treat.append(mystr)
+        treatment=fp().parse_item_treatment(response,path)
 
         # 西医治疗
         common_treat=[]
-
-        path='//div[@class="article_paragraph"]/p'
-
-        common_treat=fp().parse_item_treatment(response,path)
+        common_treat=treatment['children'][0]
 
 
         # 中医治疗
-        chinese_med_treat=[]
+        chinese_med_treat=treatment['children'][1] if len(treatment['children'])==2 else []
 
         item["common_treat"] = common_treat
         item["chinese_med_treat"] = chinese_med_treat
@@ -259,13 +241,18 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
 
         name = response.xpath('//div[@class="disease"]/h1/text()').extract()[0]
 
-        prevention = []
-        text_lists_prevention = response.xpath(
-            '//div[@class="article_box"]//p').extract()
+        # prevention = []
+        # text_lists_prevention = response.xpath(
+        #     '//div[@class="article_box"]//p').extract()
 
-        for text in text_lists_prevention:
-            mystr = StrFunc().str_format(text)
-            prevention.append(mystr)
+        # for text in text_lists_prevention:
+        #     mystr = StrFunc().str_format(text)
+        #     prevention.append(mystr)
+
+        prevention=[]
+        path='//div[@class="article_paragraph"]/p'
+
+        prevention=fp().parse_item_identify(response,path,'预防')['children']
 
         item["prevention"] = prevention
         item['classify'] = 'disease:prevention'
@@ -284,18 +271,20 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
         # 鉴别
         identify = []  # 鉴别
 
-        paragraphs= response.xpath('//div[@class="article_paragraph"]/p')
+        path='//div[@class="article_paragraph"]/p'
 
-        identify=self.parse_paragraph(paragraphs)
+        identify=fp().parse_item_identify(response,path,'鉴别')['children']
+
+        
 
 
          
          # 诊断
         diagnosis = []
 
-        paragraphs= response.xpath('//div[@class="art-box"]/p')
+        path='//div[@class="art-box"]/p'
 
-        diagnosis=self.parse_paragraph(paragraphs)
+        diagnosis=fp().parse_item_identify(response,path,'诊断')['children']
 
 
         item["name"] = name
