@@ -15,16 +15,20 @@ import re
 from jbk39.lib.service import DatabaseService as db
 
 
+from jbk39.lib.parse import FineParse as fp
+
+
 global count, resend
 count = 0
 
 resend = 0  # 重发请求
 
 
-# https://jbk.39.net/wylbgl/jb/
+# https://jbk.39.net/hnxpqxsjmy/
 
-# https://jbk.39.net/yjbt/jb/
+# 外阴乳头状瘤
 
+data=['1、图','简介','2.sasj','nihaos:','等等:','3.']
 
 class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
 
@@ -40,6 +44,10 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
     def start_requests(self):
 
         print('--start request--')
+
+        # self.parse_paragraph_l3(data)
+
+        # return
 
         departments = db.select_department(['fuke'])
 
@@ -72,7 +80,7 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
             # raise ValueError("no page  count found.")
 
         # NOTE: 当分页数超过100时，能爬到的数据并不相同
-        for i in range(pages):
+        for i in range(1):
             # step2.2: 请求某一分页
             url = "{}{}".format(base_url, str(i+1))
             yield scrapy.Request(url=url, meta=response.meta, callback=self.parse)
@@ -158,40 +166,38 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
     # 治疗
     def treat_parse(self, response):
 
+
         item = Jbk39Item()
 
         name = response.xpath('//div[@class="disease"]/h1/text()').extract()[0]
 
-        common_treat = []
-        chinese_med_treat = []
-        flag = 1  # 1、西医治疗； 2、中医治疗
-        text_lists = response.xpath(
-            '//p[@class="article_name"] | //p[@class="article_content_text"]').extract()
+        # common_treat = []
+        # chinese_med_treat = []
+        # flag = 1  # 1、西医治疗； 2、中医治疗
+        # text_lists = response.xpath(
+        #     '//p[@class="article_name"] | //p[@class="article_content_text"]').extract()
+        # for text in text_lists:
+        #     mystr = StrFunc().str_format(text)
+        #     if mystr.find('中医治疗') >= 0:
+        #         flag = 2
 
-        allP=response.xpath('//div[@class="article_paragraph"]') # 西医中医分成两块
+        #     if mystr.find("西医治疗") < 0 and mystr.find("中医治疗") < 0:
 
-        pwithnum=response.xpath('//div[@class="article_paragraph"]//p[@class="article_title_num"]')
+        #         if flag == 1:
+        #             common_treat.append(mystr)
+        #         else:
+        #             chinese_med_treat.append(mystr)
 
-        # p=response.xpath('index-of(//div[@class="article_paragraph"],//div[@class="article_paragraph"]//p[@class="article_title_num"])')
+        # 西医治疗
+        common_treat=[]
 
-        # p=response.xpath('count(//p[@class="article_title_num"])')
+        path='//div[@class="article_paragraph"]/p'
 
-        p=response.xpath('//p[index-of(@class,"article_title_num")]')
+        common_treat=fp().parse_item_treatment(response,path)
 
-        print(p)
 
-        return
-        for text in text_lists:
-            mystr = StrFunc().str_format(text)
-            if mystr.find('中医治疗') >= 0:
-                flag = 2
-
-            if mystr.find("西医治疗") < 0 and mystr.find("中医治疗") < 0:
-
-                if flag == 1:
-                    common_treat.append(mystr)
-                else:
-                    chinese_med_treat.append(mystr)
+        # 中医治疗
+        chinese_med_treat=[]
 
         item["common_treat"] = common_treat
         item["chinese_med_treat"] = chinese_med_treat
@@ -280,65 +286,16 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
 
         paragraphs= response.xpath('//div[@class="article_paragraph"]/p')
 
-        lists=paragraphs.xpath('./@class').extract()
-
-        indexes=[i for i, x in enumerate(lists) if x=="article_name"]
-
-        indexes.append(len(lists)) 
-
-        for i,x in enumerate(indexes):
-            if i==len(indexes)-1:
-                break
-            
-            title=paragraphs[x].extract()
-            content=self.parse_paragraph(paragraphs[x+1:indexes[i+1]].extract())
-
-            title=StrFunc().str_format(title)
-
-            title=re.sub(r'[：,:]',u'',title)
-            title=re.sub(r'.*）',u'',title)
-            title=re.sub(r'.*\d\.',u'',title)
+        identify=self.parse_paragraph(paragraphs)
 
 
-            if len(content)>0:
-                if isinstance(content,list):
-                    for x in content:
-                        identify.append(x)
-                else:
-                    identify.append({'title':title,'content':content})
          
          # 诊断
-        diagnosis = []  # 鉴别
+        diagnosis = []
 
         paragraphs= response.xpath('//div[@class="art-box"]/p')
 
-        lists=paragraphs.xpath('./@class').extract()
-
-        indexes=[i for i, x in enumerate(lists) if x=="article_name"]
-
-        indexes.append(len(lists)) 
-
-
-        for i,x in enumerate(indexes):
-            if i==len(indexes)-1:
-                break
-            
-            title=paragraphs[x].extract()
-            content=self.parse_paragraph(paragraphs[x+1:indexes[i+1]].extract())
-
-            title=StrFunc().str_format(title)
-            title=re.sub(r'[：,:]',u'',title)
-            title=re.sub(r'.*）',u'',title)
-            title=re.sub(r'.*\d\.',u'',title)
-
-
-            if len(content)>0:
-                if isinstance(content,list):
-                    for x in content:
-                        diagnosis.append(x)
-                else:
-                    diagnosis.append({'title':title,'content':content})        
-
+        diagnosis=self.parse_paragraph(paragraphs)
 
 
         item["name"] = name
@@ -350,33 +307,4 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
         yield item
 
 
-        # 解析段落 根据1.2.这种标志
-    def parse_paragraph(self,paras):
-
-        results=[]
-        sub_title_found=False
-
-        paras=list(map(lambda x: StrFunc().str_format(x),paras))
-
-
-        for x in paras:
-            label=re.search('[\d]\.',x) 
-            title=re.search('[：, :]',x)
-
-            if label and title:
-                sub_title_found=True
-                titlePosi=title.span()[1]
-                title=x[:titlePosi-1]
-                title=re.sub(r'.*）',u'',title)
-                title=re.sub(r'.*\d\.',u'',title)
-
-                content=x[titlePosi:]
-                results.append({'title':title,'content':content})
-            else:
-                results.append({'content':x})
-        
-        if not sub_title_found:
-
-            return ''.join(paras)
-        else:
-            return results
+ 
