@@ -8,7 +8,18 @@ Description: 对爬取的数据进一步解析，获得想要的数据格式
 from scrapy import Selector
 import re
 
-from common import StrFunc
+# from common import StrFunc
+from jbk39.lib.common import StrFunc
+
+
+def clean_dic(children):
+    if len(children)>0:
+        for i,v in enumerate(children):
+            del v['parent']
+            del v['value']
+            clean_dic(v['children'])
+
+
 
 
 class FineParse():
@@ -16,12 +27,11 @@ class FineParse():
     # 初始化
     def __init__(self):
 
-        self.treatment_level = [
-            r'(中西医分类)',
-            r'[一二三四五六七八九十][\.\、]',
-            r'（[一二三四五六七八九十]）',
-            r'(（\d）)|(\(\d\))|(\d[\.、])',
-        ]
+        # self.regExp = r'[一二三四五六七八九十1-9](?![天个般是经～-])'
+        self.regExp = r'[一二三四五六七八九十1-9]\d{0,}[\.、】\)）](?!\d)'
+        self.regExp = r'[一二三四五六七八九十1-9]\d{0,}[\.、】\)）]'
+
+
 
     # 打开本地文件尽心解析
 
@@ -35,16 +45,24 @@ class FineParse():
     # 解析治疗返回的数据
     # https://jbk.39.net/slgy/yyzl/ 输卵管炎
     # https://jbk.39.net/ydspnlyb/yyzl/ 阴道上皮内瘤样变
-    def parse_item_treatment(self, response=None, path=None):
+    def parse_item_treatment(self, response=None, path=None,title='治疗'):
 
-        result = {"children":[]}  # 存放解析后的结果
 
-        parent_level_index={0:'init',1:'init',2:'init',3:'init'} # 上层标题
 
-        # paragraphs= response.xpath(path)
+        # string='11.2天去吧'
 
-        path = '//div[@class="article_paragraph"]/p'
-        paragraphs = self.local_selector().xpath(path)
+        # search=re.search(self.regExp,string)
+
+        # print(search)
+
+        # return
+
+        result = {"title":title,"children": []}  # 存放解析后的结果
+
+        paragraphs= response.xpath(path)
+
+        # path = '//div[@class="article_paragraph"]/p'
+        # paragraphs = self.local_selector().xpath(path)
 
         # 段落的类名
         paraClass = paragraphs.xpath('./@class').extract()
@@ -53,276 +71,180 @@ class FineParse():
         paraText = paragraphs.extract()
         paraText = list(map(lambda x: StrFunc().str_format(x), paraText))
 
-        level=0 # 层级
-        child=None
+        child = None
+        parent=None
 
         for i, content in enumerate(paraText):
-            print('========================')
-            print(content)
-            obj=None
+            # print('==========================')
+            # print(content)
+            obj = None
             if paraClass[i] == 'article_title_num':
-                obj = {'title': content, 'content': '', 'children': [], 'level': 0}
-                level=0
-                child=obj
-                parent_level_index={0:parent_level_index[0],1:'init',2:'init',3:'init'} # 上层标题
-                parent_level_index[0]=0 if parent_level_index[0]=='init' else parent_level_index[0]+1
-            for j, regepx in enumerate(self.treatment_level):
-                search = re.search(regepx, content)
-                if search and search.span()[0] < 3:  # 过滤文本中的一些数字比如 0.4克，1、2贴每天
-                    print(re.search(regepx, content))
-                    parent_level_index[j]=0 if parent_level_index[j]=='init' else parent_level_index[j]+1
-                    level=j
-                    if paraClass[i]=='article_name': # 明确表明是标题
-                        obj = {'title': content, 'content': '', 'children': [], 'level': level}
-                        child=obj
-                    else: # 没有显式地标明是标题
-                        obj=self.parse_content(regepx,content)
-                        obj['children']=[]
-                        obj['level']=level
-                        child=obj
-                    break
+                obj = {'title': content, 'content': '',
+                       'children': [], 'value': -1, 'parent': None}
+                result['children'].append(obj)
+                parent = obj
+                continue
 
-            else: # 没有解析到标题，则整个段落作为内容
-                print('meizhodao---')
+            search = re.search(self.regExp, content)
 
-            parent=result
+            # print(search)
 
-            print('level:{}'.format(level))
-            for i in range(level):
-                try:
-                    parent=parent['children'][parent_level_index[i]]
-                except Exception:
+            # 找到标题了
+            if search and search.span()[0] < 2:
+
+                value = self.parse_number(search.group(0))
+
+                if paraClass[i] == 'article_name':  # 明确表明是标题
+                    obj = {'title': content, 'content': '', 'children': []}
+                else:  # 没有显式地标明是标题
+                    obj = self.parse_content(self.regExp, content)
+
+                obj['value'] = value
+
+                # 如果等于之前标题序号加1，说明是同级标题，需要找到上级
+                if value==1:
                     parent=parent
-                
-
-            if not obj:
-                print('----obj------')
-                child['content']=content
-            else:
-                parent['children'].append(obj)
-
-
-            print('+++++++++++++++++++++++++++++++')
-
-
-
-        print('-------------final result ---------------')
-
-        print(result)
-
-        # test_text='一、'
-        # rerext=r'(（\d）)|(\d[\.、])'
-        # rerext=r'[一二三四五六七八九十][\.\、]'
-        # search= re.search(rerext,test_text)
-
-        # print('search: {}'.format(search))
-
-        # indexes=[i for i, x in enumerate(lists) if x=='article_title_num']
-
-        # print(len(lists),indexes)
-
-        # indexes.append(len(lists))
-
-        return
-
-        for i, x in enumerate(indexes):
-            if i == len(indexes)-1:
-                break
-
-            title = paragraphs[x].extract()
-
-            content = self.parse_paragraph_l4(
-                paragraphs[x+1:indexes[i+1]].extract())
-
-            title = StrFunc().str_format(title)
-
-            title = re.sub(r'[：:]', u'', title)
-            title = re.sub(r'.*）', u'', title)
-            title = re.sub(r'.*\d\.', u'', title)
-
-            if len(content) > 0:
-                if isinstance(content, list):
-                    for x in content:
-                        results.append(x)
+                elif value==parent['value']+1:
+                    parent=parent['parent']
                 else:
-                    results.append({'title': title, 'content': content})
+                    while parent['parent']:
+                        parent = parent['parent']
+                        if value == parent['value']+1:
+                            parent=parent['parent']
+                            break
 
-        # 没有 class ='article_name' , 标题和内容混合在一起了
-        if len(indexes) == 1:
-            content = self.parse_paragraph_l3(paragraphs.extract())
+                obj['parent'] = parent
+                parent['children'].append(obj)
+                parent = obj
+            # 纯内容
+            else:
+                parent['content'] += content
 
-            for x in content:
-                results.append(x)
 
-        return results
+        # print('-------------final result ---------------')
 
-    # 解析段落内容 根据1.2.这种标志
-    def parse_content(self, regepx,content):
-        result = {}
-        span=re.search(regepx, content).span()
-        title = re.search(r'[：:]', content)
-        if  title:
-            titlePosi = title.span()[1]
-            title = content[:titlePosi-1]
-            title = re.sub(regepx, u'', title)
-            content = content[titlePosi:]
-            result={'title': title, 'content': content}
-        else:
-            title=content[span[0]:span[1]] # 
-            result={'title': content[span[0]:span[1]], 'content': content[span[1]:]}
+
+
+        clean_dic(result['children'])
+
         return result
 
 
+    def parse_item_identify(self, response=None, path=None,title=''):
+    
 
-    def parse_paragraph(self, paragraphs, className):
+        result = {"title":"","children": []}  # 存放解析后的结果
 
-        results = []
-        lists = paragraphs.xpath('./@class').extract()
+        paragraphs= response.xpath(path)
 
-        indexes = [i for i, x in enumerate(lists) if x == 'article_name']
+        # path = '//div[@class="article_paragraph"]/p'
+        # paragraphs = self.local_selector().xpath(path)
 
-        indexes.append(len(lists))
+        # 段落的类名
+        paraClass = paragraphs.xpath('./@class').extract()
 
-        for i, x in enumerate(indexes):
-            if i == len(indexes)-1:
-                break
+        # 段落的内容
+        paraText = paragraphs.extract()
+        paraText = list(map(lambda x: StrFunc().str_format(x), paraText))
 
-            title = paragraphs[x].extract()
+        parent={'title': title, 'content': '',
+                       'children': [], 'value': -1, 'parent': None}
 
-            content = self.parse_paragraph_l2(
-                paragraphs[x+1:indexes[i+1]].extract())
+        result['children'].append(parent)
 
-            title = StrFunc().str_format(title)
+        for i, content in enumerate(paraText):
+            # print('==========================')
+            # print(content)
+            obj = None
 
-            title = re.sub(r'[：:]', u'', title)
-            title = re.sub(r'.*）', u'', title)
-            title = re.sub(r'.*\d\.', u'', title)
+            search = re.search(self.regExp, content)
 
-            if len(content) > 0:
-                if isinstance(content, list):
-                    for x in content:
-                        results.append(x)
+            # print(search)
+
+            # 找到标题了
+            if search and search.span()[0] < 2:
+
+                value = self.parse_number(search.group(0))
+
+                if paraClass[i] == 'article_name':  # 明确表明是标题
+                    obj = {'title': content, 'content': '', 'children': []}
+                else:  # 没有显式地标明是标题
+                    obj = self.parse_content(self.regExp, content)
+
+                obj['value'] = value
+
+                # 如果等于之前标题序号加1，说明是同级标题，需要找到上级
+                if value==1:
+                    parent=parent
+                elif value==parent['value']+1:
+                    parent=parent['parent']
                 else:
-                    results.append({'title': title, 'content': content})
+                    while parent['parent']:
+                        parent = parent['parent']
+                        if value == parent['value']+1:
+                            parent=parent['parent']
+                            break
 
-        # 没有 class ='article_name' , 标题和内容混合在一起了
-        if len(indexes) == 1:
-            content = self.parse_paragraph_l3(paragraphs.extract())
-
-            for x in content:
-                results.append(x)
-
-        return results
-
-        # 解析段落 根据1.2.这种标志
-    def parse_paragraph_l2(self, paras):
-        results = []
-        sub_title_found = False
-
-        paras = list(map(lambda x: StrFunc().str_format(x), paras))
-
-        for x in paras:
-            label = re.search(r'\d\.', x)
-            title = re.search(r'[：:]', x)
-
-            if label and title:
-                sub_title_found = True
-                titlePosi = title.span()[1]
-                title = x[:titlePosi-1]
-                title = re.sub(r'.*）', u'', title)
-                title = re.sub(r'.*\d\.', u'', title)
-
-                content = x[titlePosi:]
-                results.append({'title': title, 'content': content})
+                obj['parent'] = parent
+                parent['children'].append(obj)
+                parent = obj
+            # 纯内容
             else:
-                results.append({'title': None, 'content': x})
-
-        if not sub_title_found:
-
-            results = ''.join(paras)
-
-        return results
+                parent['content'] += content
 
 
-# 卵巢成熟畸胎瘤 外阴乳头状瘤 女性生殖道多部位原发癌
+        # print('-------------final result ---------------')
 
-        # 解析段落 根据1.2.这种标志
 
-    def parse_paragraph_l3(self, paras):
+        clean_dic(result['children'])
 
-        results = []
+        return result
 
-        paras = list(map(lambda x: StrFunc().str_format(x), paras))
+    # 解析出数字
+    def parse_number(self, content):
+        hanji_to_number = {
+            "一": 1,
+            "二": 2,
+            "三": 3,
+            "四": 4,
+            "五": 5,
+            "六": 6,
+            "七": 7,
+            "八": 8,
+            "九": 9,
+            "十": 10,
+            "十一": 11,
+            "十二": 12,
+        }
+        regExp = r'[一二三四五六七八九十\d]+'
+        search = re.search(regExp, content)
 
-        purecontent = ''.join(paras)
+        match = search.group(0)
 
-        paras = '#'.join(paras)
+        try:
+            return int(match)
+        except Exception:
+            return hanji_to_number[match]
 
-        index_list = [i.start() for i in re.finditer(r'\d[\.、]', paras)]
+    # 解析段落内容 根据1.2.这种标志
+    def parse_content(self, regepx, content):
+        result = {}
+        span = re.search(regepx, content).span()
+        title = re.search(r'[：:]', content)
+        if title:
+            titlePosi = title.span()[1]
+            title = content[:titlePosi]
+            # title = re.sub(regepx, u'', title)
+            content = content[titlePosi:]
+            result = {'title': title, 'content': content}
+        else:
+            # title = content[span[0]:span[1]]
+            result = {'title': content[span[0]:span[1]],
+                      'content': content[span[1]:]}
 
-        # index_list = [i.start() for i in re.finditer('(\d、)|(\d\.)', paras)]
+        result['children'] = []
 
-        index_list.append(len(paras))
-
-        title_found = False
-
-        for i, x in enumerate(index_list):
-
-            if i == len(index_list)-1:
-                break
-
-            title_found = True
-
-            ok = paras[x:index_list[i+1]]
-
-            title = ok.split('#')[0]
-
-            title = re.sub(r'(\d[\.、])|[:：]', '', title)
-            content = ''.join(ok.split('#')[1:])
-            results.append({'title': title, 'content': content})
-
-        if not title_found:
-            results.append({'title': None, 'content': purecontent})
-        return results
-
-    # 解析段落 根据一、二、这种标志
-    def parse_paragraph_l4(self, paras):
-
-        results = []
-
-        paras = list(map(lambda x: StrFunc().str_format(x), paras))
-
-        purecontent = ''.join(paras)
-
-        paras = '#'.join(paras)
-
-        index_list = [i.start()
-                      for i in re.finditer(r'[一二三四五六七八九十][、\.]', paras)]
-
-        # index_list = [i.start() for i in re.finditer('(\d、)|(\d\.)', paras)]
-
-        index_list.append(len(paras))
-
-        title_found = False
-
-        for i, x in enumerate(index_list):
-
-            if i == len(index_list)-1:
-                break
-
-            title_found = True
-
-            ok = paras[x:index_list[i+1]]
-
-            title = ok.split('#')[0]
-
-            title = re.sub(r'([一二三四五六七八九十][\.、])|[:：]', '', title)
-            content = ''.join(ok.split('#')[1:])
-            results.append({'title': title, 'content': content})
-
-        if not title_found:
-            results.append({'title': None, 'content': purecontent})
-        return results
+        return result
 
 
 if __name__ == '__main__':
