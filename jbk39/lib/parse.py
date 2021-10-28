@@ -12,16 +12,6 @@ import re
 from jbk39.lib.common import StrFunc
 
 
-def clean_dic(children):
-    if len(children)>0:
-        for i,v in enumerate(children):
-            del v['parent']
-            del v['value']
-            clean_dic(v['children'])
-
-
-
-
 class FineParse():
 
     # 初始化
@@ -29,9 +19,8 @@ class FineParse():
 
         # self.regExp = r'[一二三四五六七八九十1-9](?![天个般是经～-])'
         self.regExp = r'[一二三四五六七八九十1-9]\d{0,}[\.、】\)）](?!\d)'
+        # TODO: 考虑A-Z和①②③④⑤⑥⑦⑧⑨⑩编号
         self.regExp = r'[一二三四五六七八九十1-9]\d{0,}[\.、】\)）]'
-
-
 
     # 打开本地文件尽心解析
 
@@ -45,21 +34,11 @@ class FineParse():
     # 解析治疗返回的数据
     # https://jbk.39.net/slgy/yyzl/ 输卵管炎
     # https://jbk.39.net/ydspnlyb/yyzl/ 阴道上皮内瘤样变
-    def parse_item_treatment(self, response=None, path=None,title='治疗'):
+    def parse_item(self, response=None, path=None,title=''):
 
+        result = []  # 存放解析后的结果
 
-
-        # string='11.2天去吧'
-
-        # search=re.search(self.regExp,string)
-
-        # print(search)
-
-        # return
-
-        result = {'title':title,'children': []}  # 存放解析后的结果
-
-        paragraphs= response.xpath(path)
+        paragraphs = response.xpath(path)
 
         # path = '//div[@class="article_paragraph"]/p'
         # paragraphs = self.local_selector().xpath(path)
@@ -71,135 +50,52 @@ class FineParse():
         paraText = paragraphs.extract()
         paraText = list(map(lambda x: StrFunc().str_format(x), paraText))
 
-        parent=None
+        parent = {'title': '', 'content': ''}
 
         for i, content in enumerate(paraText):
-            # print('==========================')
-            # print(content)
-            obj = None
-            if paraClass[i] == 'article_title_num':
-                obj = {'title': content, 'content': '',
-                       'children': [], 'value': -1, 'parent': None}
-                result['children'].append(obj)
-                parent = obj
-                continue
-
+            obj = {}
             search = re.search(self.regExp, content)
-
-            # print(search)
-
+            if paraClass[i] in ('article_title_num','article_name'):
+                obj = {'title': content, 'content': ''}
+                parent = obj
+                result.append(parent)
             # 找到标题了
-            if search and search.span()[0] < 2:
-
-                value = self.parse_number(search.group(0))
+            elif search and search.span()[0] < 2:
 
                 if paraClass[i] == 'article_name':  # 明确表明是标题
-                    obj = {'title': content, 'content': '', 'children': []}
+                    obj = {'title': content, 'content': ''}
+                elif len(paragraphs[i].xpath('./strong')) > 0:  # 用加黑表明
+                    obj = {'title': content, 'content': ''}
                 else:  # 没有显式地标明是标题
                     obj = self.parse_content(self.regExp, content)
-
-                obj['value'] = value
-
-                # 如果等于之前标题序号加1，说明是同级标题，需要找到上级
-                if value==1:
-                    parent=parent
-                elif value==parent['value']+1:
-                    parent=parent['parent']
-                else:
-                    while parent['parent']:
-                        parent = parent['parent']
-                        if value == parent['value']+1:
-                            parent=parent['parent']
-                            break
-
-                obj['parent'] = parent
-                parent['children'].append(obj)
                 parent = obj
-            # 纯内容
-            else:
-                parent['content'] += content
+                result.append(parent)
 
+            else:
+                if len(parent['content']) == 0:
+                    parent['content'] = content
+                else:
+                    parent['content'] += '\\r\\n' + \
+                        content if len(content) > 0 else ''
+
+        if len(paraText)==1:
+            parent['title']=title
+            result.append(parent)
 
         # print('-------------final result ---------------')
 
+        # print(result)
 
-
-        clean_dic(result['children'])
-
-        return result
-
-
-    def parse_item_identify(self, response=None, path=None,title=''):
-    
-
-        result = {'title':'','children': []}  # 存放解析后的结果
-
-        paragraphs= response.xpath(path)
-
-        # 段落的类名
-        paraClass = paragraphs.xpath('./@class').extract()
-
-        # 段落的内容
-        paraText = paragraphs.extract()
-        paraText = list(map(lambda x: StrFunc().str_format(x), paraText))
-
-        parent={'title': '', 'content': '',
-                       'children': [], 'value': -1, 'parent': None}
-
-        result['children'].append(parent)
-
-        for i, content in enumerate(paraText):
-            # print('==========================')
-            # print(content)
-            obj = None
-
-            search = re.search(self.regExp, content)
-
-            # print(search)
-
-            # 找到标题了
-            if search and search.span()[0] < 2:
-
-                value = self.parse_number(search.group(0))
-
-                if paraClass[i] == 'article_name':  # 明确表明是标题
-                    obj = {'title': content, 'content': '', 'children': []}
-                else:  # 没有显式地标明是标题
-                    obj = self.parse_content(self.regExp, content)
-
-                obj['value'] = value
-
-                # 如果等于之前标题序号加1，说明是同级标题，需要找到上级
-                if value==1:
-                    parent=parent
-                elif value==parent['value']+1:
-                    parent=parent['parent']
-                else:
-                    while parent['parent']:
-                        parent = parent['parent']
-                        if value == parent['value']+1:
-                            parent=parent['parent']
-                            break
-
-                obj['parent'] = parent
-                parent['children'].append(obj)
-                parent = obj
-            # 纯内容
-            else:
-                if i==0:
-                    parent['title'] += content
-                else:
-                    parent['content'] += content
-
-
-        # print('-------------final result ---------------')
-
-
-        clean_dic(result['children'])
+        delete_count = 0
+        for i in range(len(result)):
+            if len(result[i-delete_count]['content']) == 0:
+                del(result[i-delete_count])
+                delete_count += 1
 
         return result
 
     # 解析出数字
+
     def parse_number(self, content):
         hanji_to_number = {
             '一': 1,
@@ -237,14 +133,11 @@ class FineParse():
             content = content[titlePosi:]
             result = {'title': title, 'content': content}
         else:
-            # title = content[span[0]:span[1]]
             result = {'title': content[span[0]:span[1]],
                       'content': content[span[1]:]}
-
-        result['children'] = []
 
         return result
 
 
 if __name__ == '__main__':
-    FineParse().parse_item_treatment()
+    FineParse().parse_item()

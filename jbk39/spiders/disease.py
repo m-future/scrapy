@@ -169,26 +169,12 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
 
         path = '//div[@class="article_paragraph"]/p'
 
-        treatment = fp().parse_item_treatment(response, path)
+        treatment = fp().parse_item(response, path,'治疗')
 
         # 西医治疗
-        common_treat = {}
+        common_treat = treatment
         chinese_med_treat = {}
 
-        child = treatment['children']
-
-        if len(child) == 1:
-            title_content = child[0]['title']+child[0]['content']
-            if re.search(r'(辩证)|(中医)', title_content):
-                common_treat = []
-                chinese_med_treat = child[0]
-            else:
-                common_treat = child[0]
-                chinese_med_treat = []
-
-        elif len(child) == 2:
-            common_treat = child[0]
-            chinese_med_treat = child[1]
 
         item["common_treat"] = common_treat
         item["chinese_med_treat"] = chinese_med_treat
@@ -253,7 +239,7 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
         prevention = []
         path = '//div[@class="article_paragraph"]/p'
 
-        prevention = fp().parse_item_identify(response, path, '预防')['children'][0]
+        prevention = fp().parse_item(response, path,'预防')
 
         item["prevention"] = prevention
         item['classify'] = 'disease:prevention'
@@ -274,14 +260,14 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
 
         path = '//div[@class="article_paragraph"]/p'
 
-        identify = fp().parse_item_identify(response, path, '鉴别')['children'][0]
+        identify = fp().parse_item(response, path,'鉴别')
 
         # 诊断
         diagnosis = []
 
         path = '//div[@class="art-box"]/p'
 
-        diagnosis = fp().parse_item_identify(response, path, '诊断')['children'][0]
+        diagnosis = fp().parse_item(response, path,'诊断')
 
         item["name"] = name
         item['department'] = response.meta["pinyin"]
