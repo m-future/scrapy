@@ -57,7 +57,7 @@ class FineParse():
 
         # return
 
-        result = {"title":title,"children": []}  # 存放解析后的结果
+        result = {'title':title,'children': []}  # 存放解析后的结果
 
         paragraphs= response.xpath(path)
 
@@ -71,7 +71,6 @@ class FineParse():
         paraText = paragraphs.extract()
         paraText = list(map(lambda x: StrFunc().str_format(x), paraText))
 
-        child = None
         parent=None
 
         for i, content in enumerate(paraText):
@@ -133,12 +132,9 @@ class FineParse():
     def parse_item_identify(self, response=None, path=None,title=''):
     
 
-        result = {"title":"","children": []}  # 存放解析后的结果
+        result = {'title':'','children': []}  # 存放解析后的结果
 
         paragraphs= response.xpath(path)
-
-        # path = '//div[@class="article_paragraph"]/p'
-        # paragraphs = self.local_selector().xpath(path)
 
         # 段落的类名
         paraClass = paragraphs.xpath('./@class').extract()
@@ -147,7 +143,7 @@ class FineParse():
         paraText = paragraphs.extract()
         paraText = list(map(lambda x: StrFunc().str_format(x), paraText))
 
-        parent={'title': title, 'content': '',
+        parent={'title': '', 'content': '',
                        'children': [], 'value': -1, 'parent': None}
 
         result['children'].append(parent)
@@ -190,7 +186,10 @@ class FineParse():
                 parent = obj
             # 纯内容
             else:
-                parent['content'] += content
+                if i==0:
+                    parent['title'] += content
+                else:
+                    parent['content'] += content
 
 
         # print('-------------final result ---------------')
@@ -203,18 +202,18 @@ class FineParse():
     # 解析出数字
     def parse_number(self, content):
         hanji_to_number = {
-            "一": 1,
-            "二": 2,
-            "三": 3,
-            "四": 4,
-            "五": 5,
-            "六": 6,
-            "七": 7,
-            "八": 8,
-            "九": 9,
-            "十": 10,
-            "十一": 11,
-            "十二": 12,
+            '一': 1,
+            '二': 2,
+            '三': 3,
+            '四': 4,
+            '五': 5,
+            '六': 6,
+            '七': 7,
+            '八': 8,
+            '九': 9,
+            '十': 10,
+            '十一': 11,
+            '十二': 12,
         }
         regExp = r'[一二三四五六七八九十\d]+'
         search = re.search(regExp, content)

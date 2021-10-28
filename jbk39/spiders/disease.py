@@ -108,26 +108,25 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
 
             link = item.xpath('a/@href').extract()[0]
 
-            response.meta['url']=link
+            response.meta['url'] = link
 
             # NOTE: 诊断，初始添加，先运行这里
             yield scrapy.Request(url=link + 'jb', meta=response.meta, callback=self.diagnosis_parse)
 
-            # 简介
-            yield scrapy.Request(url=link + 'jbzs', meta={'url': link}, callback=self.intro_parse)
+            # # 简介
+            # yield scrapy.Request(url=link + 'jbzs', meta={'url': link}, callback=self.intro_parse)
 
             # 治疗
             yield scrapy.Request(url=link + 'yyzl', callback=self.treat_parse)
 
-            # 症状
-            yield scrapy.Request(url=link + 'zztz', meta=response.meta, callback=self.symptom_parse)
+            # # 症状
+            # yield scrapy.Request(url=link + 'zztz', meta=response.meta, callback=self.symptom_parse)
 
-            # 病因
-            yield scrapy.Request(url=link + 'blby', callback=self.cause_parse)
+            # # 病因
+            # yield scrapy.Request(url=link + 'blby', callback=self.cause_parse)
 
             # 预防
             yield scrapy.Request(url=link + 'yfhl', callback=self.prevention_parse)
-
 
     # ==============================  step4: 以下均为页面解析  =============================
 
@@ -164,22 +163,32 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
     # 治疗
     def treat_parse(self, response):
 
-
         item = Jbk39Item()
 
         name = response.xpath('//div[@class="disease"]/h1/text()').extract()[0]
 
-        path='//div[@class="article_paragraph"]/p'
+        path = '//div[@class="article_paragraph"]/p'
 
-        treatment=fp().parse_item_treatment(response,path)
+        treatment = fp().parse_item_treatment(response, path)
 
         # 西医治疗
-        common_treat=[]
-        common_treat=treatment['children'][0]
+        common_treat = {}
+        chinese_med_treat = {}
 
+        child = treatment['children']
 
-        # 中医治疗
-        chinese_med_treat=treatment['children'][1] if len(treatment['children'])==2 else []
+        if len(child) == 1:
+            title_content = child[0]['title']+child[0]['content']
+            if re.search(r'(辩证)|(中医)', title_content):
+                common_treat = []
+                chinese_med_treat = child[0]
+            else:
+                common_treat = child[0]
+                chinese_med_treat = []
+
+        elif len(child) == 2:
+            common_treat = child[0]
+            chinese_med_treat = child[1]
 
         item["common_treat"] = common_treat
         item["chinese_med_treat"] = chinese_med_treat
@@ -241,18 +250,10 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
 
         name = response.xpath('//div[@class="disease"]/h1/text()').extract()[0]
 
-        # prevention = []
-        # text_lists_prevention = response.xpath(
-        #     '//div[@class="article_box"]//p').extract()
+        prevention = []
+        path = '//div[@class="article_paragraph"]/p'
 
-        # for text in text_lists_prevention:
-        #     mystr = StrFunc().str_format(text)
-        #     prevention.append(mystr)
-
-        prevention=[]
-        path='//div[@class="article_paragraph"]/p'
-
-        prevention=fp().parse_item_identify(response,path,'预防')['children']
+        prevention = fp().parse_item_identify(response, path, '预防')['children'][0]
 
         item["prevention"] = prevention
         item['classify'] = 'disease:prevention'
@@ -271,21 +272,16 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
         # 鉴别
         identify = []  # 鉴别
 
-        path='//div[@class="article_paragraph"]/p'
+        path = '//div[@class="article_paragraph"]/p'
 
-        identify=fp().parse_item_identify(response,path,'鉴别')['children']
+        identify = fp().parse_item_identify(response, path, '鉴别')['children'][0]
 
-        
-
-
-         
-         # 诊断
+        # 诊断
         diagnosis = []
 
-        path='//div[@class="art-box"]/p'
+        path = '//div[@class="art-box"]/p'
 
-        diagnosis=fp().parse_item_identify(response,path,'诊断')['children']
-
+        diagnosis = fp().parse_item_identify(response, path, '诊断')['children'][0]
 
         item["name"] = name
         item['department'] = response.meta["pinyin"]
@@ -294,6 +290,3 @@ class jbk39(scrapy.Spider):  # 需要继承scrapy.Spider类
         item['classify'] = 'disease:diagnosis'
 
         yield item
-
-
- 
